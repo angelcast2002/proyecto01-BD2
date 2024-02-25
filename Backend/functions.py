@@ -1,21 +1,12 @@
 import pymongo
 from pymongo import MongoClient
-from gridfs import GridFS
 from PIL import Image
 import io
-
-# Conectar a MongoDB
-client = MongoClient("mongodb+srv://azu21242:TopoMorado2@aleazurdia.ueyomqq.mongodb.net/?retryWrites=true&w=majority&appName=aleazurdia")
-db = client.ProyectoDB2
-
-# Acceder a la colección GridFS
-fs = GridFS(db)
-
-
-from pymongo import MongoClient
 import gridfs
 from datetime import datetime
 import uuid
+from bson.objectid import ObjectId
+from IPython.display import display
 
 # Conexión a MongoDB
 client = MongoClient("mongodb+srv://azu21242:TopoMorado2@aleazurdia.ueyomqq.mongodb.net/?retryWrites=true&w=majority&appName=aleazurdia")
@@ -64,12 +55,8 @@ def anadir_mensaje(id_conversacion, emisor, receptor, mensaje, es_archivo=False)
     }
     return conversaciones_col.update_one({"_id": id_conversacion}, {"$push": {"arr_mensajes": mensaje_doc}})
 
-from bson.objectid import ObjectId
-from IPython.display import display
 
-# Conexión a MongoDB
 
-# Función para recuperar la información del usuario y su foto de perfil
 # Función para recuperar la información del usuario y su foto de perfil
 def recuperar_usuario_y_foto(correo):
     # Asegúrate de que aquí usas el nombre correcto de la colección
@@ -87,6 +74,14 @@ def recuperar_usuario_y_foto(correo):
     else:
         print("Usuario no encontrado.")
 
+def recueprar_id_conversation(correo1, correo2):
+    conversaciones_col = db['conversacion']  # Accede a la colección directamente
+    conversacion = conversaciones_col.find_one({"personas": {"$all": [correo1, correo2]}})
+    if conversacion:
+        return conversacion["_id"]
+    else:
+        return None
+
 
 if __name__ == "__main__":
     # Prueba de añadir usuario
@@ -94,4 +89,12 @@ if __name__ == "__main__":
     #recuperar_usuario_y_foto("prueba1@gmail.com")
 
     # Prueba de crear conversación
-    crear_conversacion("prueba1@gmail.com", "prueba2@gmai.com")
+    #crear_conversacion("prueba1@gmail.com", "prueba2@gmai.com")
+
+    id_recuperado = recueprar_id_conversation("prueba1@gmail.com", "prueba2@gmai.com")
+
+    # Prueba de añadir mensaje
+    #anadir_mensaje(id_recuperado, "prueba1@gmail.com", "prueba2@gmail.com", "Hola, ¿cómo estás?")
+    anadir_mensaje(id_recuperado, "prueba2@gmail.com", "prueba1@gmail.com", "Bien, y tu?, queloque")
+    anadir_mensaje(id_recuperado, "prueba1@gmail.com", "prueba2@gmail.com", "¿Como que queloque loco?")
+
