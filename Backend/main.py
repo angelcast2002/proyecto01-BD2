@@ -13,16 +13,16 @@ from bson import ObjectId
 from bcrypt import hashpw, checkpw, gensalt
 from fastapi.middleware.cors import CORSMiddleware
 
-
 app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=[""],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # Definición del modelo de usuario
 class User(BaseModel):
@@ -47,7 +47,6 @@ def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
     # Guardar la imagen en GridFS
     profile_pic_id = fs.put(profile_pic.file, filename=profile_pic.filename)
 
-
     # Hashear la contraseña antes de almacenarla
     hashed_password = hashpw(user.password.encode('utf-8'), gensalt())
 
@@ -61,9 +60,9 @@ def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
     inserted_user = users_collection.insert_one(user_data)
     mm.disconnect(client)
 
-
-    #Return status code 200 and message: "User created"
+    # Return status code 200 and message: "User created"
     return {"status": 200, "message": "User created"}
+
 
 # Ruta para obtener la información de un usuario
 @app.get("/users/get")
@@ -78,17 +77,18 @@ def get_user(user_id: str):
     if user_document is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
 
-
     # Recuperar la imagen de perfil del usuario
     profile_pic = fs.get(user_document['profilepic']).read()
     profile_pic = profile_pic.decode('utf-8')
 
     return FileResponse(profile_pic, media_type="image/jpeg")
 
+
 # Definición del modelo de datos para el inicio de sesión
 class LoginData(BaseModel):
     id: str
     password: str
+
 
 # Ruta para el inicio de sesión
 @app.post("/login")
@@ -110,20 +110,21 @@ def login(login_data: LoginData):
     if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-
     # Inicio de sesión exitoso
     return {"status": 200, "message": "Inicio de sesión exitoso"}
+
 
 class members_conversation(BaseModel):
     id_usuario1: str
     id_usuario2: str
+
 
 # Ruta para crear una conversación
 @app.post("/conversations/")
 async def create_conversation(members: members_conversation):
     client = mm.connect()
     db = client['ProyectoDB2']
-    conversations_collection = db.conversacion  
+    conversations_collection = db.conversacion
     # Verificar si la conversación ya existe
     if conversations_collection.find_one({"personas": {"$all": [members.id_usuario1, members.id_usuario2]}}):
         raise HTTPException(status_code=400, detail="La conversación ya existe")
@@ -136,16 +137,18 @@ async def create_conversation(members: members_conversation):
     inserted_conversation = conversations_collection.insert_one(conversation_data)
     mm.disconnect(client)
 
-    #Return status code 200 and message: "Conversation created", devolver el id de la conversación
+    # Return status code 200 and message: "Conversation created", devolver el id de la conversación
     return {"status": 200, "message": "Conversation created", "id_conversacion": str(inserted_conversation.inserted_id)}
 
     # 65db97526a2cdde556925375
+
 
 class message(BaseModel):
     id_conversacion: str
     emisor: str
     mensaje: str
     es_archivo: bool
+
 
 # Ruta para añadir un mensaje a una conversación
 @app.post("/messages/")
@@ -172,7 +175,7 @@ async def add_message(message: message):
     # Verificar si la conversación existe
     if not conversations_collection.find_one({"_id": ObjectId(message.id_conversacion)}):
         raise HTTPException(status_code=400, detail="La conversación no existe")
-    
+
     # Guardar el mensaje en GridFS si es un archivo
     if message.es_archivo:
         mensaje_id = fs.put(message.mensaje.encode('utf-8'), filename=f"msg_{datetime.now().timestamp()}")
@@ -189,11 +192,13 @@ async def add_message(message: message):
     }
 
     # Insertar el mensaje en la conversación
-    conversations_collection.update_one({"_id": ObjectId(message.id_conversacion)}, {"$push": {"arr_mensajes": mensaje_doc}})
+    conversations_collection.update_one({"_id": ObjectId(message.id_conversacion)},
+                                        {"$push": {"arr_mensajes": mensaje_doc}})
     mm.disconnect(client)
 
-    #Return status code 200 and message: "Message added"
+    # Return status code 200 and message: "Message added"
     return {"status": 200, "message": "Message added", "id_conversacion": message.id_conversacion}
+
 
 """
 Debe devolver:
@@ -204,9 +209,12 @@ Debe devolver:
 - foto de perfil de la persona con la que se está conversando
 """
 
+
 class user_id(BaseModel):
     id: str
-# Ruta para recuperar las conversaciones de un usuario. 
+
+
+# Ruta para recuperar las conversaciones de un usuario.
 @app.post("/conversations/retrieve/")
 async def retrieve_conversations(user: user_id):
     client = mm.connect()
@@ -224,12 +232,13 @@ async def retrieve_conversations(user: user_id):
     retrieved_conversations = []
     for conversation in conversations:
         # Recuperar el nombre de la persona con la que se está conversando
-        other_person = conversation["personas"][0] if conversation["personas"][1] == user.id else conversation["personas"][1]
+        other_person = conversation["personas"][0] if conversation["personas"][1] == user.id else \
+        conversation["personas"][1]
         other_person_data = users_collection.find_one({"_id": other_person})
         other_person_name = f"{other_person_data['nombre']} {other_person_data['apellido']}"
         # Recuperar la foto de perfil de la persona con la que se está conversando
-        #profile_pic = fs.get(other_person_data['profilepic']).read()
-        #profile_pic = profile_pic.decode('utf-8')
+        # profile_pic = fs.get(other_person_data['profilepic']).read()
+        # profile_pic = profile_pic.decode('utf-8')
         # Recuperar el último mensaje
         last_message = conversation["arr_mensajes"][-1]
         # Crear el objeto de conversación
@@ -241,9 +250,8 @@ async def retrieve_conversations(user: user_id):
         })
     mm.disconnect(client)
 
-    #Return status code 200 and message: "Conversations retrieved", devolver las conversaciones
+    # Return status code 200 and message: "Conversations retrieved", devolver las conversaciones
     return {"status": 200, "message": "Conversations retrieved", "conversations": retrieved_conversations}
-
 
 
 if __name__ == "__main__":
