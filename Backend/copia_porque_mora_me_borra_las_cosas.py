@@ -1,3 +1,80 @@
+from typing import Union
+import uvicorn
+from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
+from fastapi.responses import FileResponse
+
+import mongoManager as mm
+from pydantic import BaseModel
+from gridfs import GridFS
+from datetime import datetime
+from bson import ObjectId
+from bcrypt import hashpw, checkpw, gensalt
+from base64 import b64encode
+import motor.motor_asyncio
+
+
+app = FastAPI()
+
+# Definición del modelo de usuario
+class User(BaseModel):
+    id: str
+    password: str
+    nombre: str
+    apellido: str
+    birthdate: str
+
+
+# Ruta para crear un nuevo usuario
+@app.post("/users")
+def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+    fs = GridFS(db)
+    # Verificar si el usuario ya existe
+    if users_collection.find_one({"_id": user.id}):
+        raise HTTPException(status_code=400, detail="El usuario ya existe")
+
+    # Guardar la imagen en GridFS
+    profile_pic_id = fs.put(profile_pic.file, filename=profile_pic.filename)
+
+
+    # Hashear la contraseña antes de almacenarla
+    hashed_password = hashpw(user.password.encode('utf-8'), gensalt())
+
+    # Insertar el nuevo usuario en la base de datos
+    user_data = user.dict()
+    user_data["birthdate"] = datetime.strptime(user_data["birthdate"], "%Y-%m-%d")
+    user_data['password'] = hashed_password.decode('utf-8')
+    user_data['profilepic'] = profile_pic_id
+    user_data['_id'] = user_data.pop('id')
+
+    inserted_user = users_collection.insert_one(user_data)
+    mm.disconnect(client)
+
+
+    #Return status code 200 and message: "User created"
+    return {"status": 200, "message": "User created"}
+
+# Ruta para obtener la información de un usuario
+@app.get("/users/get")
+def get_user(user_id: str):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+    fs = GridFS(db)
+
+    # Verificar si el usuario existe
+    user_document = users_collection.find_one({"_id": user_id})
+    if user_document is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+
+    # Recuperar la imagen de perfil del usuario
+    profile_pic = fs.get(user_document['profilepic']).read()
+    profile_pic = profile_pic.decode('utf-8')
+
+    return FileResponse(profile_pic, media_type="image/jpeg")
 
 class members_conversation(BaseModel):
     id_usuario1: str
@@ -93,7 +170,7 @@ class user_id(BaseModel):
     id: str
 # Ruta para recuperar las conversaciones de un usuario. 
 @app.post("/conversations/retrieve/")
-async def retrieve_conversations(user: user_id):
+async def retrieve_conversations(user_id: str):
     client = mm.connect()
     db = client['ProyectoDB2']
     conversations_collection = db.conversacion
@@ -101,26 +178,28 @@ async def retrieve_conversations(user: user_id):
     fs = GridFS(db)
 
     # Verificar si el usuario existe
-    if not users_collection.find_one({"_id": user.id}):
+    if not users_collection.find_one({"_id": user_id}):
         raise HTTPException(status_code=400, detail="El usuario no existe")
 
     # Recuperar las conversaciones del usuario
-    conversations = conversations_collection.find({"personas": user.id})
+    conversations = conversations_collection.find({"personas": user_id})
     retrieved_conversations = []
     for conversation in conversations:
         # Recuperar el nombre de la persona con la que se está conversando
-        other_person = conversation["personas"][0] if conversation["personas"][1] == user.id else conversation["personas"][1]
+        other_person = conversation["personas"][0] if conversation["personas"][1] == user_id else conversation["personas"][1]
         other_person_data = users_collection.find_one({"_id": other_person})
         other_person_name = f"{other_person_data['nombre']} {other_person_data['apellido']}"
-        # Recuperar la foto de perfil de la persona con la que se está conversando
-        #profile_pic = fs.get(other_person_data['profilepic']).read()
-        #profile_pic = profile_pic.decode('utf-8')
+        # Recuperar la foto de perfil de la persona con la que se está conversando y codificarla en Base64
+        profile_pic_id = other_person_data['profilepic']
+        profile_pic = fs.get(profile_pic_id).read()
+        profile_pic_b64 = b64encode(profile_pic).decode('utf-8')
         # Recuperar el último mensaje
         last_message = conversation["arr_mensajes"][-1]
-        # Crear el objeto de conversación
+        # Crear el objeto de conversación incluyendo la foto de perfil en Base64
         retrieved_conversations.append({
             "id_conversacion": str(conversation["_id"]),
             "nombre_persona": other_person_name,
+            "foto_perfil_base64": profile_pic_b64,
             "fecha_ultimo_mensaje": last_message["fechahora"],
             "contenido_ultimo_mensaje": last_message["mensaje"],
         })
@@ -129,3 +208,7 @@ async def retrieve_conversations(user: user_id):
     #Return status code 200 and message: "Conversations retrieved", devolver las conversaciones
     return {"status": 200, "message": "Conversations retrieved", "conversations": retrieved_conversations}
 
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
