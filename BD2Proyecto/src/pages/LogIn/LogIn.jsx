@@ -33,16 +33,15 @@ const LogIn = () => {
   }
 
   const handleLogIn = async () => {
-    navigate("/chat")
-    const response = await api.handleRequest("POST", "/users/login", {
-      email,
+    const response = await api.handleRequest("POST", "/login", {
+      id: email,
       password: passWord,
     })
 
     console.log(response)
 
     if (response.status === 200) {
-      dispatch("user/logIn", response.data.id)
+      dispatch("user/config", email)
       navigate("/home")
     } else {
       setError("Correo o contraseña incorrectos")

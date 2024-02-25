@@ -8,6 +8,7 @@ import InputFile from "../../components/InputFile/InputFile"
 import { AiOutlineCloudDownload } from "react-icons/ai"
 import { TbEdit } from "react-icons/tb"
 import Loader from "../../components/Loader/Loader"
+import useApi from "../../Hooks/useApi"
 
 // pedir correo, password, nombre, apellido, pfp
 const SignUp = () => {
@@ -16,11 +17,13 @@ const SignUp = () => {
   const [pfp, setPfp] = useState("")
   const [pfpPreview, setPfpPreview] = useState("/images/pfp.svg")
   const [pfpText, setPfpText] = useState("")
-  
+  const api = useApi()
+
   const [passWord, setPassWord] = useState("")
   const [email, setEmail] = useState("")
   const [nombres, setNombres] = useState("")
   const [apellidos, setApellidos] = useState("")
+  const [fechaNacimiento, setFechaNacimiento] = useState("")
 
   const handleImageSelect = (event) => {
     const selectedFile = event.target.files[0]
@@ -40,13 +43,11 @@ const SignUp = () => {
     setShowPassword(!showPassword)
   }
 
-  const handleSignUp = () => {}
-
   const handleHome = () => {
     navigate("/")
   }
 
-  const handleInputsValue = (e) => { 
+  const handleInputsValue = (e) => {
     switch (e.target.name) {
       case "correo":
         setEmail(e.target.value)
@@ -59,11 +60,30 @@ const SignUp = () => {
         break
       case "apellidos":
         setApellidos(e.target.value)
+      case "fechaNacimiento":
+        setFechaNacimiento(e.target.value)
         break
       default:
         break
     }
   }
+
+  const handleSignUp = async () => {
+    const response = await api.createUser(
+      nombres,
+      apellidos,
+      email,
+      passWord,
+      fechaNacimiento,
+      pfp
+    )
+    console.log(response)
+    if (response.status === 200) {
+      console.log("Usuario creado")
+    } else {
+      console.log("Error al crear usuario")
+    }
+  } 
 
   return (
     <div className={style.signUpCointainer}>
@@ -105,6 +125,17 @@ const SignUp = () => {
                   name="apellidos"
                   type="text"
                   placeholder="Nano"
+                  onChange={handleInputsValue}
+                />
+              </div>
+              <div className={style.birthDateContainer}>
+                <span>Fecha de nacimiento</span>
+                <ComponentInput
+                  name="fechaNacimiento"
+                  type="date"
+                  placeholder="2018-07-22"
+                  min="1940-01-01"
+                  max="2005-01-01"
                   onChange={handleInputsValue}
                 />
               </div>
