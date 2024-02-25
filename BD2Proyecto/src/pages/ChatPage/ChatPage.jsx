@@ -13,6 +13,7 @@ import useApi from "../../Hooks/useApi"
 import Popup from "../../components/Popup/Popup"
 import useIsImage from "../../Hooks/useIsImage"
 import { formatDuration } from "date-fns"
+import SearchBar from "../../components/SearchBar/SearchBar"
 
 const ChatPage = () => {
   const { user } = useStoreon("user")
@@ -114,6 +115,14 @@ const ChatPage = () => {
     setShowChats(false)
   }
 
+  const handleSearch = (e) => {
+    console.log('e.target.value')
+  }
+
+  const handleValue = (e) => {
+    console.log(e.target.value)
+  }
+
   return (
     <div className={style.container}>
       <Header userperson="student" />
@@ -127,33 +136,42 @@ const ChatPage = () => {
         <FaUserFriends size={30} color="#000" />
       </button>
       <div className={style.generalChatContainer}>
-        <div
-          className={`${style.chatsContainer} ${
-            showChats ? style.showChat : style.hideChat
-          }`}
-        >
-          {apiLastChats.data && apiLastChats.data.messages.length > 0 ? (
-            apiLastChats.data.messages.map((chat) =>
-              chat.last_message.length === 0 ? null : (
-                <Chat
-                  pfp={
-                    chat.user_photo
-                      ? API_URL + "/api/uploads/" + chat.user_photo
-                      : "/images/pfp.svg"
-                  }
-                  name={chat.user_name}
-                  lastChat={
-                    isImage(chat.last_message) ? "Foto" : chat.last_message
-                  }
-                  key={chat.postulation_id}
-                  id_postulacion={chat.postulation_id.toString()}
-                  onClick={() => handleChat(chat.user_id, chat.postulation_id)}
-                />
+        <div className={style.leftContainer}>
+          <div
+            className={`${style.chatsContainer} ${
+              showChats ? style.showChat : style.hideChat
+            }`}
+          >
+            {apiLastChats.data && apiLastChats.data.messages.length > 0 ? (
+              apiLastChats.data.messages.map((chat) =>
+                chat.last_message.length === 0 ? null : (
+                  <Chat
+                    pfp={
+                      chat.user_photo
+                        ? API_URL + "/api/uploads/" + chat.user_photo
+                        : "/images/pfp.svg"
+                    }
+                    name={chat.user_name}
+                    lastChat={
+                      isImage(chat.last_message) ? "Foto" : chat.last_message
+                    }
+                    key={chat.postulation_id}
+                    id_postulacion={chat.postulation_id.toString()}
+                    onClick={() =>
+                      handleChat(chat.user_id, chat.postulation_id)
+                    }
+                  />
+                )
               )
-            )
-          ) : (
-            <div className={style.noUsersMessage}>No tienes conversaciones</div>
-          )}
+            ) : (
+              <div className={style.noUsersMessage}>
+                No tienes conversaciones
+              </div>
+            )}
+          </div>
+          <div className={style.searchBarContainer}>
+            <SearchBar search={handleSearch} onChange={handleValue}/>
+          </div>
         </div>
         <div
           className={`${style.currentChatContainer} ${
@@ -200,15 +218,11 @@ const ChatPage = () => {
                 className={style.button}
                 style={{
                   backgroundColor:
-                    (textMessage === "") ||
-                    currentChat === ""
+                    textMessage === "" || currentChat === ""
                       ? "#D6CFF2"
                       : "#9c8bdf",
                 }}
-                disabled={
-                  (textMessage === "") ||
-                  currentChat === ""
-                }
+                disabled={textMessage === "" || currentChat === ""}
                 onClick={handleSendMessage}
               >
                 <img src="/images/send.svg" alt="send" />
