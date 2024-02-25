@@ -8,8 +8,18 @@ from gridfs import GridFS
 from datetime import datetime
 from bson import ObjectId
 from bcrypt import hashpw, checkpw, gensalt
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=[""],
+    allow_headers=["*"],
+)
 
 # Definición del modelo de usuario
 class User(BaseModel):
