@@ -215,33 +215,34 @@ class user_id(BaseModel):
 
 
 # Ruta para recuperar las conversaciones de un usuario.
+class RetrieveConversationsRequest(BaseModel):
+    user_id: str
+
 @app.post("/conversations/retrieve/")
-async def retrieve_conversations(user: user_id):
+async def retrieve_conversations(request: RetrieveConversationsRequest):
+    user_id = request.user_id
     client = mm.connect()
     db = client['ProyectoDB2']
     conversations_collection = db.conversacion
     users_collection = db.usuarios
-    fs = GridFS(db)
+    #fs = GridFS(db)
 
-    # Verificar si el usuario existe
-    if not users_collection.find_one({"_id": user.id}):
+    if not users_collection.find_one({"_id": user_id}):
         raise HTTPException(status_code=400, detail="El usuario no existe")
 
-    # Recuperar las conversaciones del usuario
-    conversations = conversations_collection.find({"personas": user.id})
+    conversations = conversations_collection.find({"personas": user_id})
     retrieved_conversations = []
     for conversation in conversations:
-        # Recuperar el nombre de la persona con la que se está conversando
-        other_person = conversation["personas"][0] if conversation["personas"][1] == user.id else \
-        conversation["personas"][1]
+        other_person = conversation["personas"][0] if conversation["personas"][1] == user_id else conversation["personas"][1]
         other_person_data = users_collection.find_one({"_id": other_person})
         other_person_name = f"{other_person_data['nombre']} {other_person_data['apellido']}"
-        # Recuperar la foto de perfil de la persona con la que se está conversando
-        # profile_pic = fs.get(other_person_data['profilepic']).read()
-        # profile_pic = profile_pic.decode('utf-8')
-        # Recuperar el último mensaje
+        """
+        profile_pic_id = other_person_data['profilepic']
+        profile_pic = fs.get(profile_pic_id).read()
+        profile_pic_b64 = b64encode(profile_pic).decode('utf-8')
+        """
         last_message = conversation["arr_mensajes"][-1]
-        # Crear el objeto de conversación
+
         retrieved_conversations.append({
             "id_conversacion": str(conversation["_id"]),
             "nombre_persona": other_person_name,
@@ -250,7 +251,6 @@ async def retrieve_conversations(user: user_id):
         })
     mm.disconnect(client)
 
-    # Return status code 200 and message: "Conversations retrieved", devolver las conversaciones
     return {"status": 200, "message": "Conversations retrieved", "conversations": retrieved_conversations}
 
 
