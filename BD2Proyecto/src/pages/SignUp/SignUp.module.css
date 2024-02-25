@@ -173,6 +173,7 @@
     align-items: center;
     margin: 5px 0;
     height: calc(100% - 10px);
+    gap: 40px;
   }
   
   @media (max-width: 600px) {

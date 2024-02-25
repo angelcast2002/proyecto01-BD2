@@ -5,6 +5,7 @@ export default createRouter([
   ["/", () => ({ page: "home" })],
   ["/login", () => ({ page: "login" })],
   ["/signup", () => ({ page: "signup" })],
+  ["/chat", () => ({ page: "chat" })],
   
   /*
 	Ejemplo de rutas con promps y parametros

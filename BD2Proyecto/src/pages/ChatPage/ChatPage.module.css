@@ -1,0 +1,195 @@
+.container {
+  background-color: #fff;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.generalChatContainer {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+}
+
+.chatsContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  color: #fff;
+  width: 30%;
+  padding: 10px;
+  overflow: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* Internet Explorer / Edge */
+  /* Desplazamiento suave */
+  scroll-behavior: smooth;
+  /* Agrega un efecto de sombra para mejorar la apariencia visual */
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  /* Añade una transición para el efecto */
+}
+
+/* Elimina la sombra cuando no esté en desplazamiento */
+.chatsContainer:hover {
+  box-shadow: none;
+}
+
+.chatsContainer::-webkit-scrollbar {
+  /* Oculta la barra de desplazamiento en navegadores basados en WebKit */
+  display: none;
+}
+
+.currentChatContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  background-color: #f5f5f5;
+  color: aliceblue;
+  width: calc(70% - 20px);
+  height: calc(100% - 20px - 60px);
+  padding: 20px 20px 60px 20px;
+  /* Agregar sombra sutil */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.3s ease;
+  overflow: hidden;
+  overflow-y: auto;
+}
+
+.currentChatContainer::-webkit-scrollbar {
+  /* Oculta la barra de desplazamiento en navegadores basados en WebKit */
+  display: none;
+}
+
+
+.noUsersMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  width: 100%;
+  height: 100%;
+}
+
+.inputContainer {
+  position: absolute;
+  bottom: 0;
+  padding: 10px;
+  width: calc(66% - 20px);
+  height: calc(60px - 20px);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  gap: 10px;
+}
+
+.inputBar {
+  width: 85%;
+}
+
+.buttonSend {
+  width: 15%;
+  height: 100%;
+}
+
+.deleteImageButton {
+  margin-left: auto;
+  position: relative;
+  right: 10px;
+  bottom: 10px;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+}
+
+.button {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+}
+
+.button img {
+  width: 50%;
+  height: 50%;
+  object-fit: contain;
+}
+
+.button:focus {
+  border-color: #a08ae5;
+  box-shadow: 0 0 0 3px rgba(160, 138, 229, 0.25);
+  outline: none;
+}
+
+.noMessagesMessage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #000;
+  width: 100%;
+  height: 100%;
+}
+
+.show {
+  display: block;
+}
+
+.hide {
+  display: none;
+}
+
+/* Estilos para el botón de menú, solo visible en móviles */
+.menuButton {
+  display: none;
+}
+
+/* Usa media queries para hacer que el botón de menú solo se muestre en dispositivos móviles */
+@media (max-width: 768px) {
+  .menuButton {
+    display: flex;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+  }
+
+  .currentChatContainer {
+    width: calc(100% - 20px);
+    overflow: hidden;
+    padding: 10px;
+    box-shadow: none;
+    background-color: #fff;
+  }
+
+  .showChat {
+    display: flex;
+    gap: 20px;
+  }
+  
+  .hideChat {
+    display: none;
+  }
+
+  .chatsContainer {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .inputContainer {
+    width: 90%;
+    padding: 10px;
+  }
+
+}

@@ -42,6 +42,10 @@ const SignUp = () => {
 
   const handleSignUp = () => {}
 
+  const handleHome = () => {
+    navigate("/")
+  }
+
   const handleInputsValue = (e) => { 
     switch (e.target.name) {
       case "correo":
@@ -129,6 +133,7 @@ const SignUp = () => {
               </div>
             </div>
             <div className={style.buttonContainer}>
+              <Button text="Regresar" onClick={handleHome} size={"75%"} />
               <Button text="Crear cuenta" onClick={handleSignUp} size={"75%"} />
             </div>
           </div>
