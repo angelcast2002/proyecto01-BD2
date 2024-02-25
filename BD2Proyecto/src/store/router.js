@@ -3,6 +3,8 @@ import { createRouter } from "@storeon/router"
 export default createRouter([
 	// ejemplo de rutas
   ["/", () => ({ page: "home" })],
+  ["/login", () => ({ page: "login" })],
+  ["/signup", () => ({ page: "signup" })],
   
   /*
 	Ejemplo de rutas con promps y parametros
