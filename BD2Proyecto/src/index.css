@@ -11,6 +11,7 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
 }
 
 a {
@@ -26,13 +27,23 @@ body {
   margin: 0;
   display: flex;
   place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
 }
 
-h1 {
+h1,h2,h3 {
   font-size: 3.2em;
   line-height: 1.1;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+}
+
+p, button{
+  font-size: 1.2em;
+  font-family: 'Poppins', sans-serif !important;
+}
+
+span {
+  font-size: 14px;
+  font-family: 'Poppins', sans-serif !important;
 }
 
 button {
@@ -47,22 +58,15 @@ button {
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  filter: brightness(1.1);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.css-tj5bde-Svg {
+  display: none !important;
 }
+
+main {
+  width: 100%;
+  height: 100%;
+}
+ 

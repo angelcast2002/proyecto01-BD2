@@ -1,5 +1,6 @@
 from typing import Union
 
+import bcrypt
 import uvicorn
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
 from starlette.responses import FileResponse
@@ -10,8 +11,18 @@ from gridfs import GridFS
 from datetime import datetime
 from bson import ObjectId
 from bcrypt import hashpw, checkpw, gensalt
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=[""],
+    allow_headers=["*"],
+)
 
 # Definición del modelo de usuario
 class User(BaseModel):
@@ -73,6 +84,35 @@ def get_user(user_id: str):
     profile_pic = profile_pic.decode('utf-8')
 
     return FileResponse(profile_pic, media_type="image/jpeg")
+
+# Definición del modelo de datos para el inicio de sesión
+class LoginData(BaseModel):
+    id: str
+    password: str
+
+# Ruta para el inicio de sesión
+@app.post("/login")
+def login(login_data: LoginData):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+
+    user_id = login_data.id
+    password = login_data.password
+
+    # Verificar si el usuario existe
+    user_document = users_collection.find_one({"_id": user_id})
+    if user_document is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Verificar la contraseña
+    hashed_password = user_document["password"]  # Obtener la contraseña hashada de la base de datos
+    if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+
+    # Inicio de sesión exitoso
+    return {"status": 200, "message": "Inicio de sesión exitoso"}
 
 class members_conversation(BaseModel):
     id_usuario1: str
