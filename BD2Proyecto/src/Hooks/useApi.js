@@ -58,6 +58,34 @@ const useApi = () => {
     return datos
   }
 
+  const createUser = async (name, lastName, mail, password, birthdate, file) => {
+    const formData = new FormData()
+    formData.append("id", mail)
+    formData.append("password", password)
+    formData.append("nombre", name)
+    formData.append("apellido", lastName)
+    formData.append("birthdate", birthdate)
+    formData.append("profile_pic", file)
+
+    setLoading(true)
+    const apiResponse = await fetch(`${API_URL}/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: formData,
+    })
+    const datos = await apiResponse.json()
+    setLoading(false)
+    setData(datos.data)
+
+    if (datos.status !== 200) {
+      setError(datos.message)
+    }
+
+    return datos
+  }
+
   return {
     error,
     user,
@@ -65,6 +93,7 @@ const useApi = () => {
     loading,
     handleRequest,
     updateProfilePicture,
+    createUser,
   }
 }
 
