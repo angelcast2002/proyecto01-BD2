@@ -63,6 +63,61 @@ def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
     # Return status code 200 and message: "User created"
     return {"status": 200, "message": "User created"}
 
+class UserUpdate(BaseModel):
+    id: str
+    nombre: str
+    apellido: str
+    birthdate: str
+
+# Ruta para actualizar la información de un usuario
+@app.put("/users")
+def update_user(user: UserUpdate = Depends(), profile_pic: UploadFile = File(...)):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+    fs = GridFS(db)
+    # Verificar si el usuario ya existe
+    if not users_collection.find_one({"_id": user.id}):
+        raise HTTPException(status_code=400, detail="El usuario no existe")
+
+    # Guardar la imagen en GridFS
+    profile_pic_id = fs.put(profile_pic.file, filename=profile_pic.filename)
+
+    # Insertar el nuevo usuario en la base de datos
+    user_data = user.dict()
+    user_data["birthdate"] = datetime.strptime(user_data["birthdate"], "%Y-%m-%d")
+    user_data['profilepic'] = profile_pic_id
+
+    inserted_user = users_collection.update_one({"_id": user.id}, {"$set": user_data})
+    mm.disconnect(client)
+
+    # Return status code 200 and message: "User created"
+    return {"status": 200, "message": "User updated"}
+
+
+# Ruta para borrar un usuario
+@app.delete("/users")
+def delete_user(user_id: str):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+    fs = GridFS(db)
+
+    # Verificar si el usuario ya existe
+    if not users_collection.find_one({"_id": user_id}):
+        raise HTTPException(status_code=404, detail="El usuario no existe")
+
+    # Borrar la imagen de perfil del usuario
+    user_document = users_collection.find_one({"_id": user_id})
+    fs.delete(user_document['profilepic'])
+
+    # Borrar el usuario de la base de datos
+    users_collection.delete_one({"_id": user_id})
+    mm.disconnect(client)
+
+    # Return status code 200 and message: "User deleted"
+    return {"status": 200, "message": "User deleted"}
+
 
 # Ruta para obtener la información de un usuario
 @app.get("/users/get")
@@ -252,6 +307,7 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     mm.disconnect(client)
 
     return {"status": 200, "message": "Conversations retrieved", "conversations": retrieved_conversations}
+
 
 
 if __name__ == "__main__":
