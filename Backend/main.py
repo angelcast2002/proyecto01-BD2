@@ -3,7 +3,7 @@ from typing import Union
 import bcrypt
 import uvicorn
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, Response
 
 import mongoManager as mm
 from pydantic import BaseModel
@@ -63,11 +63,13 @@ def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
     # Return status code 200 and message: "User created"
     return {"status": 200, "message": "User created"}
 
+
 class UserUpdate(BaseModel):
     id: str
     nombre: str
     apellido: str
     birthdate: str
+
 
 # Ruta para actualizar la información de un usuario
 @app.put("/users")
@@ -120,7 +122,7 @@ def delete_user(user_id: str):
 
 
 # Ruta para obtener la información de un usuario
-@app.get("/users/get")
+@app.get("/users/profilepic")
 def get_user(user_id: str):
     client = mm.connect()
     db = client['ProyectoDB2']
@@ -134,9 +136,10 @@ def get_user(user_id: str):
 
     # Recuperar la imagen de perfil del usuario
     profile_pic = fs.get(user_document['profilepic']).read()
-    profile_pic = profile_pic.decode('utf-8')
 
-    return FileResponse(profile_pic, media_type="image/jpeg")
+    image_bytes: bytes = profile_pic
+
+    return Response(content=image_bytes, media_type="image/png")
 
 
 # Definición del modelo de datos para el inicio de sesión
@@ -165,6 +168,7 @@ def login(login_data: LoginData):
     if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
+    mm.disconnect(client)
     # Inicio de sesión exitoso
     return {"status": 200, "message": "Inicio de sesión exitoso"}
 
@@ -273,6 +277,7 @@ class user_id(BaseModel):
 class RetrieveConversationsRequest(BaseModel):
     user_id: str
 
+
 @app.post("/conversations/retrieve/")
 async def retrieve_conversations(request: RetrieveConversationsRequest):
     user_id = request.user_id
@@ -280,7 +285,7 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     db = client['ProyectoDB2']
     conversations_collection = db.conversacion
     users_collection = db.usuarios
-    #fs = GridFS(db)
+    # fs = GridFS(db)
 
     if not users_collection.find_one({"_id": user_id}):
         raise HTTPException(status_code=400, detail="El usuario no existe")
@@ -288,7 +293,8 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     conversations = conversations_collection.find({"personas": user_id})
     retrieved_conversations = []
     for conversation in conversations:
-        other_person = conversation["personas"][0] if conversation["personas"][1] == user_id else conversation["personas"][1]
+        other_person = conversation["personas"][0] if conversation["personas"][1] == user_id else \
+        conversation["personas"][1]
         other_person_data = users_collection.find_one({"_id": other_person})
         other_person_name = f"{other_person_data['nombre']} {other_person_data['apellido']}"
         """
@@ -307,7 +313,6 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     mm.disconnect(client)
 
     return {"status": 200, "message": "Conversations retrieved", "conversations": retrieved_conversations}
-
 
 
 if __name__ == "__main__":
