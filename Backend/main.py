@@ -141,6 +141,22 @@ def get_user(user_id: str):
 
     return Response(content=image_bytes, media_type="image/png")
 
+# Ruta que devuelve la información de un usuario, menos la foto, el password y el id. 
+@app.get("/users")
+def get_user_info(user_id: str):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+    
+    """ retornar tambien status code 200 y message: "User retrieved"""
+    user_document = users_collection.find_one({"_id": user_id}, {"_id": 0, "password": 0, "profilepic": 0})
+    if user_document is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    mm.disconnect(client)
+    return {"status": 200, "message": "User retrieved", "user_info": user_document}
+
+    
+
 
 # Definición del modelo de datos para el inicio de sesión
 class LoginData(BaseModel):
