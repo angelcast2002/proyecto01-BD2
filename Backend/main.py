@@ -2,6 +2,8 @@ from typing import Union
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
+from starlette.responses import FileResponse
+
 import mongoManager as mm
 from pydantic import BaseModel
 from gridfs import GridFS
@@ -52,6 +54,25 @@ def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
     #Return status code 200 and message: "User created"
     return {"status": 200, "message": "User created"}
 
+# Ruta para obtener la información de un usuario
+@app.get("/users/get")
+def get_user(user_id: str):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+    fs = GridFS(db)
+
+    # Verificar si el usuario existe
+    user_document = users_collection.find_one({"_id": user_id})
+    if user_document is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+
+    # Recuperar la imagen de perfil del usuario
+    profile_pic = fs.get(user_document['profilepic']).read()
+    profile_pic = profile_pic.decode('utf-8')
+
+    return FileResponse(profile_pic, media_type="image/jpeg")
 
 class members_conversation(BaseModel):
     id_usuario1: str
