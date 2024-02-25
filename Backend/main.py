@@ -1,5 +1,6 @@
 from typing import Union
 
+import bcrypt
 import uvicorn
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
 import mongoManager as mm
@@ -62,6 +63,35 @@ def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
     #Return status code 200 and message: "User created"
     return {"status": 200, "message": "User created"}
 
+
+# Definición del modelo de datos para el inicio de sesión
+class LoginData(BaseModel):
+    id: str
+    password: str
+
+# Ruta para el inicio de sesión
+@app.post("/login")
+def login(login_data: LoginData):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+
+    user_id = login_data.id
+    password = login_data.password
+
+    # Verificar si el usuario existe
+    user_document = users_collection.find_one({"_id": user_id})
+    if user_document is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+    # Verificar la contraseña
+    hashed_password = user_document["password"]  # Obtener la contraseña hashada de la base de datos
+    if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+
+    # Inicio de sesión exitoso
+    return {"status": 200, "message": "Inicio de sesión exitoso"}
 
 class members_conversation(BaseModel):
     id_usuario1: str
