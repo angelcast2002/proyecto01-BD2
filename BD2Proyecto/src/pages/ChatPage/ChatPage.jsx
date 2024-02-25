@@ -21,6 +21,7 @@ const ChatPage = () => {
   const apiMessages = useApi()
   const apiSendMessage = useApi()
   const isImage = useIsImage()
+  console.log("-->",user)
 
   const [currentChat, setCurrentChat] = useState("")
   const [textMessage, setTextMessage] = useState("")

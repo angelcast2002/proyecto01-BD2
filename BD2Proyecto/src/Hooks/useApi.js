@@ -22,7 +22,7 @@ const useApi = () => {
     
     // console.info("API CALLL:", `${API_URL}/api${path}`, options)
     setLoading(true)
-    const response = await fetch(`${API_URL}/api${path}`, options)
+    const response = await fetch(`${API_URL}${path}`, options)
     const datos = await response.json() // Recibidos
     console.log("API RESPONSE:", datos)
     setLoading(false)
@@ -60,18 +60,14 @@ const useApi = () => {
 
   const createUser = async (name, lastName, mail, password, birthdate, file) => {
     const formData = new FormData()
-    formData.append("id", mail)
-    formData.append("password", password)
-    formData.append("nombre", name)
-    formData.append("apellido", lastName)
-    formData.append("birthdate", birthdate)
     formData.append("profile_pic", file)
+    console.log("URL", `${API_URL}/users?id=${mail}&password=${password}&nombre=${name}&apellido=${lastName}&birthdate=${birthdate}`)
 
     setLoading(true)
-    const apiResponse = await fetch(`${API_URL}/users`, {
+    const apiResponse = await fetch(`${API_URL}/users?id=${mail}&password=${password}&nombre=${name}&apellido=${lastName}&birthdate=${birthdate}`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "accept": "application/json",
       },
       body: formData,
     })

@@ -42,7 +42,7 @@ const LogIn = () => {
 
     if (response.status === 200) {
       dispatch("user/config", email)
-      navigate("/home")
+      navigate("/chat")
     } else {
       setError("Correo o contraseña incorrectos")
       setTypeError(2)
