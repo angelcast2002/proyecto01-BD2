@@ -343,5 +343,37 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     return {"status": 200, "message": "Conversations retrieved", "conversations": retrieved_conversations}
 
 
+# Ruta para recuperar los mensajes de una conversación
+class RetrieveMessagesRequest(BaseModel):
+    conversation_id: str
+
+@app.post("/messages/retrieve/")
+async def retrieve_messages(request: RetrieveMessagesRequest):
+    conversation_id = request.conversation_id
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    conversations_collection = db.conversacion
+    users_collection = db.usuarios
+
+    conversation = conversations_collection.find_one({"_id": ObjectId(conversation_id)})
+    if conversation is None:
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "La conversacion no existe"})
+
+    retrieved_messages = []
+    for message in conversation["arr_mensajes"]:
+        emisor_data = users_collection.find_one({"_id": message["emisor"]})
+        emisor_name = f"{emisor_data['nombre']} {emisor_data['apellido']}"
+
+        retrieved_messages.append({
+            "emisor": emisor_name,
+            "mensaje": message["mensaje"],
+            "es_archivo": message["es_archivo"],
+            "fechahora": message["fechahora"]
+        })
+    mm.disconnect(client)
+
+    return {"status": 200, "message": "Messages retrieved", "messages": retrieved_messages}
+
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
