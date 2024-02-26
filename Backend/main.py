@@ -3,7 +3,7 @@ from typing import Union
 import bcrypt
 import uvicorn
 from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
-from starlette.responses import FileResponse, Response
+from starlette.responses import FileResponse, Response, JSONResponse
 
 import mongoManager as mm
 from pydantic import BaseModel
@@ -123,7 +123,7 @@ def delete_user(user_id: str):
 
 
 # Ruta para obtener la información de un usuario
-@app.get("/users/profilepic")
+@app.get("/users")
 def get_user(user_id: str):
     client = mm.connect()
     db = client['ProyectoDB2']
@@ -139,26 +139,37 @@ def get_user(user_id: str):
     profile_pic = fs.get(user_document['profilepic']).read()
 
     image_bytes: bytes = profile_pic
+
+    user_document.pop("password")
+    user_document.pop("profilepic")
+    user_document.pop("_id")
+    user_document["birthdate"] = user_document["birthdate"].strftime("%Y-%m-%d")
+
+    headers = {
+        "Nombre": user_document["nombre"],
+        "Apellido": user_document["apellido"],
+        "Birthdate": user_document["birthdate"]
+    }
+
     mm.disconnect(client)
 
-    return Response(content=image_bytes, media_type="image/png")
-    #return Response(content=image_bytes, media_type="image/png")
+    return Response(content=image_bytes, media_type="image/png", headers=headers)
+    # return Response(content=image_bytes, media_type="image/png")
 
-# Ruta que devuelve la información de un usuario, menos la foto, el password y el id. 
+
+# Ruta que devuelve la información de un usuario, menos la foto, el password y el id.
 @app.get("/users")
 def get_user_info(user_id: str):
     client = mm.connect()
     db = client['ProyectoDB2']
     users_collection = db.usuarios
-    
+
     """ retornar tambien status code 200 y message: "User retrieved"""
     user_document = users_collection.find_one({"_id": user_id}, {"_id": 0, "password": 0, "profilepic": 0})
     if user_document is None:
         raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
     mm.disconnect(client)
     return {"status": 200, "message": "User retrieved", "user_info": user_document}
-
-    
 
 
 # Definición del modelo de datos para el inicio de sesión
@@ -313,7 +324,7 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     retrieved_conversations = []
     for conversation in conversations:
         other_person = conversation["personas"][0] if conversation["personas"][1] == user_id else \
-        conversation["personas"][1]
+            conversation["personas"][1]
         other_person_data = users_collection.find_one({"_id": other_person})
         other_person_name = f"{other_person_data['nombre']} {other_person_data['apellido']}"
         """
