@@ -1,26 +1,24 @@
 import React, { useEffect, useState } from "react"
-import style from "./SignUp.module.css"
+import style from "./EditProfile.module.css"
 import ComponentInput from "../../components/Input/Input"
 import Button from "../../components/Button/Button"
 import { navigate } from "../../store"
 import { useStoreon } from "storeon/react"
-import InputFile from "../../components/InputFile/InputFile"
-import { AiOutlineCloudDownload } from "react-icons/ai"
 import { TbEdit } from "react-icons/tb"
 import Loader from "../../components/Loader/Loader"
 import useApi from "../../Hooks/useApi"
-import { set } from "date-fns"
 import Popup from "../../components/Popup/Popup"
+import Header from "../../components/Header/Header"
 
-// pedir correo, password, nombre, apellido, pfp
-const SignUp = () => {
+const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [pfp, setPfp] = useState("")
   const [pfpPreview, setPfpPreview] = useState("/images/pfp.svg")
   const [pfpText, setPfpText] = useState("")
-  const { dispatch } = useStoreon("user")
+  const { user } = useStoreon("user")
   const api = useApi()
+  const apiUser = useApi()
 
   const [passWord, setPassWord] = useState("")
   const [email, setEmail] = useState("")
@@ -31,6 +29,31 @@ const SignUp = () => {
   const [warning, setWarning] = useState(false)
   const [error, setError] = useState("")
   const [typeError, setTypeError] = useState(1)
+
+  const obtainData = async () => {
+    await apiUser.handleRequest(
+      "POST",
+      "/users/info",
+      {
+        id: user,
+      },
+      "Accept"
+    )
+  }
+
+  useEffect(() => {
+    obtainData()
+  }, [])
+
+  useEffect(() => {
+    if (apiUser.data) {
+      console.log(apiUser.data)
+      setNombres(apiUser.data.nombre)
+      setApellidos(apiUser.data.apellido)
+      setFechaNacimiento(apiUser.data.birthdate)
+      setPfpPreview(apiUser.data.profilepic)
+    }
+  }, [apiUser.data])
 
   const handleImageSelect = (event) => {
     const selectedFile = event.target.files[0]
@@ -44,10 +67,6 @@ const SignUp = () => {
       setPfp(selectedFile)
       setPfpPreview(URL.createObjectURL(selectedFile))
     }
-  }
-
-  const handlePassword = () => {
-    setShowPassword(!showPassword)
   }
 
   const handleHome = () => {
@@ -89,8 +108,12 @@ const SignUp = () => {
       setWarning(true)
     } else {
       const response = await api.createUser(
-        pfp,
-        `id=${email}&password=${passWord}&nombre=${nombres}&apellido=${apellidos}&birthdate=${fechaNacimiento}`
+        nombres,
+        apellidos,
+        email,
+        passWord,
+        fechaNacimiento,
+        pfp
       )
       const data = response
       if (data.status === 200) {
@@ -118,6 +141,7 @@ const SignUp = () => {
 
   return (
     <div className={style.signUpCointainer}>
+      <Header />
       <Popup
         message={error}
         status={warning}
@@ -151,6 +175,7 @@ const SignUp = () => {
                 <span>Nombre</span>
                 <ComponentInput
                   name="nombres"
+                  value={nombres}
                   type="text"
                   placeholder="Esteban"
                   onChange={handleInputsValue}
@@ -159,6 +184,7 @@ const SignUp = () => {
               <div className={style.lastNameContainer}>
                 <span>Apellido</span>
                 <ComponentInput
+                  value={apellidos}
                   name="apellidos"
                   type="text"
                   placeholder="Nano"
@@ -168,35 +194,13 @@ const SignUp = () => {
               <div className={style.birthDateContainer}>
                 <span>Fecha de nacimiento</span>
                 <ComponentInput
+                  value={fechaNacimiento}
                   name="fechaNacimiento"
                   type="date"
                   placeholder="2018-07-22"
                   min="1940-01-01"
                   max="2005-01-01"
                   onChange={handleInputsValue}
-                />
-              </div>
-            </div>
-            <div className={style.dataGroup2Container}>
-              <div className={style.emailContainer}>
-                <span>Correo</span>
-                <ComponentInput
-                  name="correo"
-                  type="text"
-                  placeholder="uni@uni.com"
-                  onChange={handleInputsValue}
-                />
-              </div>
-              <div className={style.passwordContainer}>
-                <span>Contraseña</span>
-                <ComponentInput
-                  name="password"
-                  type="password"
-                  placeholder="micontraseña123"
-                  onChange={handleInputsValue}
-                  eye
-                  onClickButton={handlePassword}
-                  isOpen={showPassword}
                 />
               </div>
             </div>
@@ -211,4 +215,4 @@ const SignUp = () => {
   )
 }
 
-export default SignUp
+export default EditProfile

@@ -9,10 +9,11 @@ const useApi = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
-  const handleRequest = async (method, path, body = null) => {
+  const handleRequest = async (method, path, body = null, header1_1 = "Content-Type", header1_2 = "application/json") => {
     const options = {
       method,
       headers: {
+        [header1_1]: header1_2,
         "Content-Type": "application/json",
       },
     }
@@ -24,9 +25,8 @@ const useApi = () => {
     setLoading(true)
     const response = await fetch(`${API_URL}${path}`, options)
     const datos = await response.json() // Recibidos
-    console.log("API RESPONSE:", datos)
     setLoading(false)
-    setData(datos.data)
+    setData(datos.user_info)
 
     if (datos.status !== 200) {
       setError(datos.message)
@@ -51,20 +51,18 @@ const useApi = () => {
     setLoading(false)
     setData(datos.data)
 
-    if (datos.status !== 200) {
-      setError(datos.message)
+    if (datos.detail.status !== 200) {
+      setError(datos.detail.message)
     }
 
     return datos
   }
 
-  const createUser = async (name, lastName, mail, password, birthdate, file) => {
+  const createUser = async (file, path) => {
     const formData = new FormData()
     formData.append("profile_pic", file)
-    console.log("URL", `${API_URL}/users?id=${mail}&password=${password}&nombre=${name}&apellido=${lastName}&birthdate=${birthdate}`)
-
     setLoading(true)
-    const apiResponse = await fetch(`${API_URL}/users?id=${mail}&password=${password}&nombre=${name}&apellido=${lastName}&birthdate=${birthdate}`, {
+    const apiResponse = await fetch(`${API_URL}/users?${path}`, {
       method: "POST",
       headers: {
         "accept": "application/json",
@@ -72,6 +70,7 @@ const useApi = () => {
       body: formData,
     })
     const datos = await apiResponse.json()
+    console.log("API RESPONSE:", datos)
     setLoading(false)
     setData(datos.data)
 
