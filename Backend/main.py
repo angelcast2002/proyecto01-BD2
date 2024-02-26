@@ -40,9 +40,10 @@ def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
     db = client['ProyectoDB2']
     users_collection = db.usuarios
     fs = GridFS(db)
+
     # Verificar si el usuario ya existe
     if users_collection.find_one({"_id": user.id}):
-        raise HTTPException(status_code=400, detail="El usuario ya existe")
+        raise HTTPException(status_code=400, detail={"status": 400, "message": "Usuario ya existe"})
 
     # Guardar la imagen en GridFS
     profile_pic_id = fs.put(profile_pic.file, filename=profile_pic.filename)
@@ -80,7 +81,7 @@ def update_user(user: UserUpdate = Depends(), profile_pic: UploadFile = File(...
     fs = GridFS(db)
     # Verificar si el usuario ya existe
     if not users_collection.find_one({"_id": user.id}):
-        raise HTTPException(status_code=400, detail="El usuario no existe")
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
     # Guardar la imagen en GridFS
     profile_pic_id = fs.put(profile_pic.file, filename=profile_pic.filename)
@@ -107,7 +108,7 @@ def delete_user(user_id: str):
 
     # Verificar si el usuario ya existe
     if not users_collection.find_one({"_id": user_id}):
-        raise HTTPException(status_code=404, detail="El usuario no existe")
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario ya existe"})
 
     # Borrar la imagen de perfil del usuario
     user_document = users_collection.find_one({"_id": user_id})
@@ -132,14 +133,16 @@ def get_user(user_id: str):
     # Verificar si el usuario existe
     user_document = users_collection.find_one({"_id": user_id})
     if user_document is None:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
     # Recuperar la imagen de perfil del usuario
     profile_pic = fs.get(user_document['profilepic']).read()
 
     image_bytes: bytes = profile_pic
+    mm.disconnect(client)
 
     return Response(content=image_bytes, media_type="image/png")
+    #return Response(content=image_bytes, media_type="image/png")
 
 # Ruta que devuelve la información de un usuario, menos la foto, el password y el id. 
 @app.get("/users")
@@ -151,7 +154,7 @@ def get_user_info(user_id: str):
     """ retornar tambien status code 200 y message: "User retrieved"""
     user_document = users_collection.find_one({"_id": user_id}, {"_id": 0, "password": 0, "profilepic": 0})
     if user_document is None:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
     mm.disconnect(client)
     return {"status": 200, "message": "User retrieved", "user_info": user_document}
 
@@ -177,12 +180,12 @@ def login(login_data: LoginData):
     # Verificar si el usuario existe
     user_document = users_collection.find_one({"_id": user_id})
     if user_document is None:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
     # Verificar la contraseña
     hashed_password = user_document["password"]  # Obtener la contraseña hashada de la base de datos
     if not bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8')):
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+        raise HTTPException(status_code=401, detail={"status": 401, "message": "Credenciales inválidas"})
 
     mm.disconnect(client)
     # Inicio de sesión exitoso
@@ -202,7 +205,7 @@ async def create_conversation(members: members_conversation):
     conversations_collection = db.conversacion
     # Verificar si la conversación ya existe
     if conversations_collection.find_one({"personas": {"$all": [members.id_usuario1, members.id_usuario2]}}):
-        raise HTTPException(status_code=400, detail="La conversación ya existe")
+        raise HTTPException(status_code=400, detail={"status": 400, "message": "La conversacion ya existe"})
 
     # Crear la conversación
     conversation_data = {
@@ -249,7 +252,7 @@ async def add_message(message: message):
 
     # Verificar si la conversación existe
     if not conversations_collection.find_one({"_id": ObjectId(message.id_conversacion)}):
-        raise HTTPException(status_code=400, detail="La conversación no existe")
+        raise HTTPException(status_code=400, detail={"status": 400, "message": "La conversacion no existe"})
 
     # Guardar el mensaje en GridFS si es un archivo
     if message.es_archivo:
@@ -304,7 +307,7 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     # fs = GridFS(db)
 
     if not users_collection.find_one({"_id": user_id}):
-        raise HTTPException(status_code=400, detail="El usuario no existe")
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
     conversations = conversations_collection.find({"personas": user_id})
     retrieved_conversations = []
