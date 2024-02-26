@@ -104,6 +104,7 @@ def delete_user(user_id: str):
     client = mm.connect()
     db = client['ProyectoDB2']
     users_collection = db.usuarios
+    conversations_collection = db.conversacion
     fs = GridFS(db)
 
     # Verificar si el usuario ya existe
@@ -116,6 +117,14 @@ def delete_user(user_id: str):
 
     # Borrar el usuario de la base de datos
     users_collection.delete_one({"_id": user_id})
+
+    # Verificar si todas las personas en una conversación han sido eliminadas
+    conversations = conversations_collection.find({"personas": user_id})
+    for conversation in conversations:
+        if not users_collection.find_one({"_id": {"$in": conversation["personas"]}}):
+            # Si todas las personas en la conversación han sido eliminadas, eliminar la conversación
+            conversations_collection.delete_one({"_id": conversation["_id"]})
+
     mm.disconnect(client)
 
     # Return status code 200 and message: "User deleted"
@@ -207,13 +216,21 @@ class members_conversation(BaseModel):
     id_usuario1: str
     id_usuario2: str
 
-
 # Ruta para crear una conversación
 @app.post("/conversations/")
 async def create_conversation(members: members_conversation):
     client = mm.connect()
     db = client['ProyectoDB2']
     conversations_collection = db.conversacion
+
+    # verifica si los usuarios existen
+    users_collection = db.usuarios
+    if not users_collection.find_one({"_id": members.id_usuario1}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario 1 no existe"})
+    if not users_collection.find_one({"_id": members.id_usuario2}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario 2 no existe"})
+    
+
     # Verificar si la conversación ya existe
     if conversations_collection.find_one({"personas": {"$all": [members.id_usuario1, members.id_usuario2]}}):
         raise HTTPException(status_code=400, detail={"status": 400, "message": "La conversacion ya existe"})
@@ -229,7 +246,6 @@ async def create_conversation(members: members_conversation):
     # Return status code 200 and message: "Conversation created", devolver el id de la conversación
     return {"status": 200, "message": "Conversation created", "id_conversacion": str(inserted_conversation.inserted_id)}
 
-    # 65db97526a2cdde556925375
 
 
 class message(BaseModel):
@@ -246,20 +262,10 @@ async def add_message(message: message):
     db = client['ProyectoDB2']
     conversations_collection = db.conversacion
     fs = GridFS(db)
-
-    """
-    [
-    {
-        "_id": {"$oid": "65db97526a2cdde556925375"},
-        "arr_mensajes": [],
-        "personas": ["prueba", "prueba2"]
-    }
-    ]
-
-    
-    Toda la información debería hacerse push en arr_mensajes. 
-    ahí, en [[emisor, mensaje, esarchivo, fecha], [emisor, mensaje, esarchivo, fecha]...]
-    """
+    # Verificar si el usuario existe
+    users_collection = db.usuarios
+    if not users_collection.find_one({"_id": message.emisor}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
     # Verificar si la conversación existe
     if not conversations_collection.find_one({"_id": ObjectId(message.id_conversacion)}):
