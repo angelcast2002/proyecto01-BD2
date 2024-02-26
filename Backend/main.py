@@ -313,24 +313,24 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     db = client['ProyectoDB2']
     conversations_collection = db.conversacion
     users_collection = db.usuarios
-    # fs = GridFS(db)
 
     if not users_collection.find_one({"_id": user_id}):
         raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
-    conversations = conversations_collection.find({"personas": user_id})
+    # Utilizando la agregación para ordenar por la fecha del último mensaje
+    pipeline = [
+        {"$match": {"personas": user_id}},  # Filtra las conversaciones que incluyen al usuario
+        {"$addFields": {"ultimo_mensaje": {"$arrayElemAt": ["$arr_mensajes", -1]}}},  # Añade el último mensaje a cada documento
+        {"$sort": {"ultimo_mensaje.fechahora": -1}}  # Ordena los documentos por la fecha del último mensaje de forma descendente
+    ]
+    conversations = conversations_collection.aggregate(pipeline)
+
     retrieved_conversations = []
     for conversation in conversations:
-        other_person = conversation["personas"][0] if conversation["personas"][1] == user_id else \
-            conversation["personas"][1]
+        other_person = conversation["personas"][0] if conversation["personas"][1] == user_id else conversation["personas"][1]
         other_person_data = users_collection.find_one({"_id": other_person})
         other_person_name = f"{other_person_data['nombre']} {other_person_data['apellido']}"
-        """
-        profile_pic_id = other_person_data['profilepic']
-        profile_pic = fs.get(profile_pic_id).read()
-        profile_pic_b64 = b64encode(profile_pic).decode('utf-8')
-        """
-        last_message = conversation["arr_mensajes"][-1]
+        last_message = conversation["ultimo_mensaje"]
 
         retrieved_conversations.append({
             "id_conversacion": str(conversation["_id"]),
@@ -341,6 +341,7 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     mm.disconnect(client)
 
     return {"status": 200, "message": "Conversations retrieved", "conversations": retrieved_conversations}
+
 
 
 # Ruta para recuperar los mensajes de una conversación
