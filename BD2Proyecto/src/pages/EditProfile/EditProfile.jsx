@@ -19,6 +19,7 @@ const EditProfile = () => {
   const { user } = useStoreon("user")
   const api = useApi()
   const apiUser = useApi()
+  const apiDelete = useApi()
 
   const [passWord, setPassWord] = useState("")
   const [email, setEmail] = useState("")
@@ -47,11 +48,10 @@ const EditProfile = () => {
 
   useEffect(() => {
     if (apiUser.data) {
-      console.log(apiUser.data)
       setNombres(apiUser.data.nombre)
       setApellidos(apiUser.data.apellido)
       setFechaNacimiento(apiUser.data.birthdate)
-      setPfpPreview(apiUser.data.profilepic)
+      // La imagen no funcia
     }
   }, [apiUser.data])
 
@@ -67,10 +67,6 @@ const EditProfile = () => {
       setPfp(selectedFile)
       setPfpPreview(URL.createObjectURL(selectedFile))
     }
-  }
-
-  const handleHome = () => {
-    navigate("/")
   }
 
   const handleInputsValue = (e) => {
@@ -94,38 +90,25 @@ const EditProfile = () => {
     }
   }
 
-  const handleSignUp = async () => {
+  const handleEditInfo = async () => {
     if (
       nombres === "" ||
       apellidos === "" ||
-      email === "" ||
-      passWord === "" ||
-      fechaNacimiento === "" ||
-      pfp === ""
+      fechaNacimiento === ""
     ) {
       setError("Todos los campos son obligatorios")
       setTypeError(2)
       setWarning(true)
     } else {
-      const response = await api.createUser(
-        nombres,
-        apellidos,
-        email,
-        passWord,
-        fechaNacimiento,
-        pfp
+      const response = await api.editUser(
+        `id=${user}&nombre=${nombres}&apellido=${apellidos}&birthdate=${fechaNacimiento}`,
+        "PUT"
       )
+      console.log("Response", response)
       const data = response
+      console.log("Data", data)
       if (data.status === 200) {
-        setIsLoading(true)
-        setError("Cuenta creada exitosamente, redirigiendo...")
-        setTypeError(3)
-        setWarning(true)
-        dispatch("user/config", email)
-        setTimeout(() => {
-          setIsLoading(false)
-          navigate("/chat")
-        }, 5000)
+        
       } else if (data.status === 404) {
         setError(data.message)
         setTypeError(2)
@@ -135,7 +118,33 @@ const EditProfile = () => {
         setTypeError(1)
         setWarning(true)
       }
-      setIsLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    const response = await apiDelete.handleRequest(
+      "POST",
+      "/users/delete",
+      {
+        id: user,
+      },
+      "Accept"
+    )
+    console.log("Response", response)
+    const data = response.detail
+    console.log("Data", data)
+    if (response.status === 200) {
+      setError(response.message)
+      setTypeError(3)
+      setWarning(true)
+      setTimeout(() => {
+        setIsLoading(false)
+        navigate("/")
+      }, 5000)
+    } else {
+      setError(data.message)
+      setTypeError(1)
+      setWarning(true)
     }
   }
 
@@ -205,8 +214,8 @@ const EditProfile = () => {
               </div>
             </div>
             <div className={style.buttonContainer}>
-              <Button text="Regresar" onClick={handleHome} size={"75%"} />
-              <Button text="Crear cuenta" onClick={handleSignUp} size={"75%"} />
+              <Button text="Eliminar" onClick={handleDelete} size={"75%"} />
+              <Button text="Guardar cambios" onClick={handleEditInfo} size={"75%"} />
             </div>
           </div>
         </div>

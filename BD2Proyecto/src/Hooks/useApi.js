@@ -81,6 +81,27 @@ const useApi = () => {
     return datos
   }
 
+  const editUser = async (path, type) => {
+    console.log("Path", path)
+    setLoading(true)
+    const apiResponse = await fetch(`${API_URL}/users?${path}`, {
+      method: type,
+      headers: {
+        "accept": "application/json",
+      },
+    })
+    const datos = await apiResponse.json()
+    console.log("API RESPONSE:", datos)
+    setLoading(false)
+    setData(datos.data)
+
+    if (datos.status !== 200) {
+      setError(datos.message)
+    }
+
+    return datos
+  }
+
   return {
     error,
     user,
@@ -89,6 +110,7 @@ const useApi = () => {
     handleRequest,
     updateProfilePicture,
     createUser,
+    editUser,
   }
 }
 
