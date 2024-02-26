@@ -169,6 +169,12 @@ def get_user_info(user: UserDelete):
     user_document = users_collection.find_one({"_id": user.id}, {"_id": 0, "password": 0, "profilepic": 0})
     if user_document is None:
         raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
+
+    user_document['birthdate'] = users_collection.aggregate([
+        {"$match": {"_id": user.id}},
+        {"$project": {"birthdate": {"$dateToString": {"format": "%Y-%m-%d", "date": "$birthdate"}}}}
+    ]).next()["birthdate"]
+    
     mm.disconnect(client)
     return {"status": 200, "message": "User retrieved", "user_info": user_document}
 
