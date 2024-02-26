@@ -12,6 +12,7 @@ from datetime import datetime
 from bson import ObjectId
 from bcrypt import hashpw, checkpw, gensalt
 from fastapi.middleware.cors import CORSMiddleware
+import base64
 
 app = FastAPI()
 
@@ -164,9 +165,10 @@ def get_user_info(user: UserDelete):
     client = mm.connect()
     db = client['ProyectoDB2']
     users_collection = db.usuarios
+    fs = GridFS(db)
 
     """ retornar tambien status code 200 y message: "User retrieved"""
-    user_document = users_collection.find_one({"_id": user.id}, {"_id": 0, "password": 0, "profilepic": 0})
+    user_document = users_collection.find_one({"_id": user.id}, {"_id": 0, "password": 0})
     if user_document is None:
         raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
@@ -174,7 +176,12 @@ def get_user_info(user: UserDelete):
         {"$match": {"_id": user.id}},
         {"$project": {"birthdate": {"$dateToString": {"format": "%Y-%m-%d", "date": "$birthdate"}}}}
     ]).next()["birthdate"]
-    
+    # Recuperar la imagen de perfil del usuario
+    profile_pic = fs.get(user_document['profilepic']).read()
+
+    user_document['profilepic'] = base64.b64encode(profile_pic).decode('utf-8')
+
+
     mm.disconnect(client)
     return {"status": 200, "message": "User retrieved", "user_info": user_document}
 
