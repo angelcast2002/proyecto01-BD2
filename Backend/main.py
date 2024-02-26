@@ -98,9 +98,12 @@ def update_user(user: UserUpdate = Depends(), profile_pic: UploadFile = File(...
     return {"status": 200, "message": "User updated"}
 
 
+class UserDelete(BaseModel):
+    id: str
+
 # Ruta para borrar un usuario
-@app.delete("/users")
-def delete_user(user_id: str):
+@app.post("/users/delete")
+def delete_user(user : UserDelete):
     client = mm.connect()
     db = client['ProyectoDB2']
     users_collection = db.usuarios
@@ -108,18 +111,18 @@ def delete_user(user_id: str):
     fs = GridFS(db)
 
     # Verificar si el usuario ya existe
-    if not users_collection.find_one({"_id": user_id}):
-        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario ya existe"})
+    if not users_collection.find_one({"_id": user.id}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
     # Borrar la imagen de perfil del usuario
-    user_document = users_collection.find_one({"_id": user_id})
+    user_document = users_collection.find_one({"_id": user.id})
     fs.delete(user_document['profilepic'])
 
     # Borrar el usuario de la base de datos
-    users_collection.delete_one({"_id": user_id})
+    users_collection.delete_one({"_id": user.id})
 
     # Verificar si todas las personas en una conversación han sido eliminadas
-    conversations = conversations_collection.find({"personas": user_id})
+    conversations = conversations_collection.find({"personas": user.id})
     for conversation in conversations:
         if not users_collection.find_one({"_id": {"$in": conversation["personas"]}}):
             # Si todas las personas en la conversación han sido eliminadas, eliminar la conversación
@@ -132,15 +135,15 @@ def delete_user(user_id: str):
 
 
 # Ruta para obtener la información de un usuario
-@app.get("/users")
-def get_user(user_id: str):
+@app.post("/users/profilepic")
+def get_user(user: UserDelete):
     client = mm.connect()
     db = client['ProyectoDB2']
     users_collection = db.usuarios
     fs = GridFS(db)
 
     # Verificar si el usuario existe
-    user_document = users_collection.find_one({"_id": user_id})
+    user_document = users_collection.find_one({"_id": user.id}, {"profilepic": 1})
     if user_document is None:
         raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
@@ -149,32 +152,21 @@ def get_user(user_id: str):
 
     image_bytes: bytes = profile_pic
 
-    user_document.pop("password")
-    user_document.pop("profilepic")
-    user_document.pop("_id")
-    user_document["birthdate"] = user_document["birthdate"].strftime("%Y-%m-%d")
-
-    headers = {
-        "Nombre": user_document["nombre"],
-        "Apellido": user_document["apellido"],
-        "Birthdate": user_document["birthdate"]
-    }
 
     mm.disconnect(client)
 
-    return Response(content=image_bytes, media_type="image/png", headers=headers)
-    # return Response(content=image_bytes, media_type="image/png")
+    return Response(content=image_bytes, media_type="image/png")
 
 
 # Ruta que devuelve la información de un usuario, menos la foto, el password y el id.
-@app.get("/users")
-def get_user_info(user_id: str):
+@app.post("/users/info")
+def get_user_info(user: UserDelete):
     client = mm.connect()
     db = client['ProyectoDB2']
     users_collection = db.usuarios
 
     """ retornar tambien status code 200 y message: "User retrieved"""
-    user_document = users_collection.find_one({"_id": user_id}, {"_id": 0, "password": 0, "profilepic": 0})
+    user_document = users_collection.find_one({"_id": user.id}, {"_id": 0, "password": 0, "profilepic": 0})
     if user_document is None:
         raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
     mm.disconnect(client)
