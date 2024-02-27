@@ -192,8 +192,6 @@ def get_user_info(user: UserDelete):
         {"$project": {"birthdate": {"$dateToString": {"format": "%Y-%m-%d", "date": "$birthdate"}}}}
     ]).next()["birthdate"]
 
-    del user_document['id']
-
     mm.disconnect(client)
     return {"status": 200, "message": "User retrieved", "user_info": user_document}
 
