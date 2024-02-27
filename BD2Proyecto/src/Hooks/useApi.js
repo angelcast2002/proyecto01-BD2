@@ -35,6 +35,33 @@ const useApi = () => {
     return datos
   }
 
+  const retrieveConversationsLimit = async (id_user, limit) => {
+    setLoading(true)
+    // /conversations/retrieve/limit/
+    // user_id: id_user, limit: limit
+    // POST
+    const apiResponse = await fetch(`${API_URL}/conversations/retrieve/limit/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ user_id: id_user, limit: limit }),
+    })
+
+    const datos = await apiResponse.json()
+    setLoading(false)
+    setData(datos.data)
+
+    if (datos.status !== 200) {
+      setError(datos.message)
+    }
+
+    return datos
+  }
+
+
+
+
   const updateProfilePicture = async (file) => {
     const formData = new FormData()
     formData.append("file", file)
