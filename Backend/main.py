@@ -334,7 +334,7 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
     pipeline = [
         {"$match": {"personas": user_id}},  # Filtra las conversaciones que incluyen al usuario
         {"$addFields": {"ultimo_mensaje": {"$arrayElemAt": ["$arr_mensajes", -1]}}},  # Añade el último mensaje a cada documento
-        {"$sort": {"ultimo_mensaje.fechahora": -1}}  # Ordena los documentos por la fecha del último mensaje de forma descendente
+        {"$sort": {"ultimo_mensaje.fechahora": -1}},  # Ordena los documentos por la fecha del último mensaje de forma descendente
     ]
     conversations = conversations_collection.aggregate(pipeline)
 
@@ -353,7 +353,59 @@ async def retrieve_conversations(request: RetrieveConversationsRequest):
         })
     mm.disconnect(client)
 
-    return {"status": 200, "message": "Conversations retrieved", "conversations": retrieved_conversations}
+    length = len(retrieved_conversations)
+
+    return {"status": 200, "message": "Conversations retrieved", "num_conversations": length , "conversations": retrieved_conversations}
+
+class RetrieveConversationsRequestSpecific(BaseModel):
+    user_id: str
+    limit: int
+
+# Ruta para retornar solo 15 conversaciones. 
+@app.post("/conversations/retrieve/limit")
+
+async def retrieve_conversations(request: RetrieveConversationsRequestSpecific):
+    user_id = request.user_id
+    limit = request.limit
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    conversations_collection = db.conversacion
+    users_collection = db.usuarios
+
+    if not users_collection.find_one({"_id": user_id}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
+    
+    pipeline = [
+        {"$match": {"personas": user_id}},  # Filtra las conversaciones que incluyen al usuario
+        {
+            "$addFields": {
+                "ultimo_mensaje": {"$arrayElemAt": ["$arr_mensajes", -1]},
+                "cantidad_mensajes": {"$size": "$arr_mensajes"}
+            }
+        },
+        {"$sort": {"ultimo_mensaje.fechahora": -1}},  # Ordena los documentos por la fecha del último mensaje de forma descendente
+        {"$limit": limit}
+    ]
+
+    retrieved_conversations = []
+    for conversation in conversations_collection.aggregate(pipeline):
+        other_person = conversation["personas"][0] if conversation["personas"][1] == user_id else conversation["personas"][1]
+        other_person_data = users_collection.find_one({"_id": other_person})
+        other_person_name = f"{other_person_data['nombre']} {other_person_data['apellido']}"
+        last_message = conversation["ultimo_mensaje"]
+
+        retrieved_conversations.append({
+            "id_conversacion": str(conversation["_id"]),
+            "nombre_persona": other_person_name,
+            "fecha_ultimo_mensaje": last_message["fechahora"],
+            "contenido_ultimo_mensaje": last_message["mensaje"],
+            "cantidad_mensajes": conversation["cantidad_mensajes"]
+        })
+
+    length = len(retrieved_conversations)
+
+    mm.disconnect(client)
+    return {"status": 200, "message": "Conversations retrieved", "num_messages":length,  "conversations": retrieved_conversations}
 
 
 
