@@ -86,8 +86,9 @@ def update_user(user: UserUpdate = Depends()):
     # Insertar el nuevo usuario en la base de datos
     user_data = user.dict()
     user_data["birthdate"] = datetime.strptime(user_data["birthdate"], "%Y-%m-%d")
+    user_data['_id'] = user_data.pop('id')
 
-    inserted_user = users_collection.update_one({"_id": user.id}, {"$set": user_data})
+    users_collection.update_one({"_id": user.id}, {"$set": user_data})
     mm.disconnect(client)
 
     # Return status code 200 and message: "User created"
