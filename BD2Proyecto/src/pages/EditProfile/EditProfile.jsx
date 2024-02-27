@@ -21,8 +21,6 @@ const EditProfile = () => {
   const apiUser = useApi()
   const apiDelete = useApi()
 
-  const [passWord, setPassWord] = useState("")
-  const [email, setEmail] = useState("")
   const [nombres, setNombres] = useState("")
   const [apellidos, setApellidos] = useState("")
   const [fechaNacimiento, setFechaNacimiento] = useState("")
@@ -91,11 +89,7 @@ const EditProfile = () => {
   }
 
   const handleEditInfo = async () => {
-    if (
-      nombres === "" ||
-      apellidos === "" ||
-      fechaNacimiento === ""
-    ) {
+    if (nombres === "" || apellidos === "" || fechaNacimiento === "") {
       setError("Todos los campos son obligatorios")
       setTypeError(2)
       setWarning(true)
@@ -104,11 +98,11 @@ const EditProfile = () => {
         `id=${user}&nombre=${nombres}&apellido=${apellidos}&birthdate=${fechaNacimiento}`,
         "PUT"
       )
-      console.log("Response", response)
       const data = response
-      console.log("Data", data)
       if (data.status === 200) {
-        
+        setError("Cambios guardados con éxito")
+        setTypeError(3)
+        setWarning(true)
       } else if (data.status === 404) {
         setError(data.message)
         setTypeError(2)
@@ -117,6 +111,25 @@ const EditProfile = () => {
         setError(response.detail.message)
         setTypeError(1)
         setWarning(true)
+      }
+      if (pfp !== "") {
+        const response = await api.updateProfilePicture(
+          pfp,
+          `users/profilepic?user_id=${user}`
+        )
+        if (response.status === 200) {
+          setTimeout(() => {
+            setError("Imagen de perfil actualizada con éxito")
+            setTypeError(3)
+            setWarning(true)
+          }, 5000)
+        } else {
+          setTimeout(() => {
+            setError(response.message)
+            setTypeError(1)
+            setWarning(true)
+          }, 5000)
+        }
       }
     }
   }
@@ -215,7 +228,11 @@ const EditProfile = () => {
             </div>
             <div className={style.buttonContainer}>
               <Button text="Eliminar" onClick={handleDelete} size={"75%"} />
-              <Button text="Guardar cambios" onClick={handleEditInfo} size={"75%"} />
+              <Button
+                text="Guardar cambios"
+                onClick={handleEditInfo}
+                size={"75%"}
+              />
             </div>
           </div>
         </div>
