@@ -442,6 +442,7 @@ async def retrieve_messages(request: RetrieveMessagesRequest):
         emisor_name = f"{emisor_data['nombre']} {emisor_data['apellido']}"
 
         retrieved_messages.append({
+            "id_emisor": emisor_name,
             "emisor": emisor_name,
             "mensaje": message["mensaje"],
             "es_archivo": message["es_archivo"],
