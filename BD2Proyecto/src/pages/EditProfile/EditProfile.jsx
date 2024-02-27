@@ -9,6 +9,7 @@ import Loader from "../../components/Loader/Loader"
 import useApi from "../../Hooks/useApi"
 import Popup from "../../components/Popup/Popup"
 import Header from "../../components/Header/Header"
+import Switch from "../../components/Switch/Switch"
 
 const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(false)

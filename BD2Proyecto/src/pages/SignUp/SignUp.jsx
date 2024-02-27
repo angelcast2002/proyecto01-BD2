@@ -11,6 +11,7 @@ import Loader from "../../components/Loader/Loader"
 import useApi from "../../Hooks/useApi"
 import { set } from "date-fns"
 import Popup from "../../components/Popup/Popup"
+import Switch from "../../components/Switch/Switch"
 
 // pedir correo, password, nombre, apellido, pfp
 const SignUp = () => {
@@ -27,6 +28,7 @@ const SignUp = () => {
   const [nombres, setNombres] = useState("")
   const [apellidos, setApellidos] = useState("")
   const [fechaNacimiento, setFechaNacimiento] = useState("")
+  const [genre, setGenre] = useState("M")
 
   const [warning, setWarning] = useState(false)
   const [error, setError] = useState("")
@@ -90,7 +92,7 @@ const SignUp = () => {
     } else {
       const response = await api.createUser(
         pfp,
-        `id=${email}&password=${passWord}&nombre=${nombres}&apellido=${apellidos}&birthdate=${fechaNacimiento}`
+        `id=${email}&password=${passWord}&nombre=${nombres}&apellido=${apellidos}&birthdate=${fechaNacimiento}&gender=${genre}`
       )
       const data = response
       if (data.status === 200) {
@@ -114,6 +116,10 @@ const SignUp = () => {
       }
       setIsLoading(false)
     }
+  }
+
+  const handleGenre = (e) => {
+    setGenre(e.target.checked ? "M" : "F")
   }
 
   return (
@@ -174,6 +180,12 @@ const SignUp = () => {
                   min="1940-01-01"
                   max="2005-01-01"
                   onChange={handleInputsValue}
+                />
+              </div>
+              <div className={style.genreContainer}>
+                <Switch 
+                  value={genre}
+                  onClick={handleGenre}
                 />
               </div>
             </div>

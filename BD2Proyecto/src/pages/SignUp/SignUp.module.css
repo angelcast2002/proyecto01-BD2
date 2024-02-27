@@ -149,6 +149,14 @@
   .universityContainer {
     text-align: start;
   }
+
+  .genreContainer {
+    text-align: start;
+    position: relative;
+    align-self: center;
+    justify-content: center;
+    display: flex;
+  }
   
   .titleSemester {
     display: block;
