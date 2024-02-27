@@ -61,15 +61,15 @@ const useApi = () => {
     return datos
   }
 
-  const updateProfilePicture = async (file) => {
-    const formData = new FormData()
-    formData.append("file", file)
+  const updateProfilePicture = async (file, path) => {
 
+    const formData = new FormData()
+    formData.append("profile_pic", file)
     setLoading(true)
-    const apiResponse = await fetch(`${API_URL}/api/users/upload`, {
+    const apiResponse = await fetch(`${API_URL}/${path}`, {
       method: "PUT",
       headers: {
-        Authorization: `Bearer ${user.token}`,
+        "accept": "application/json",
       },
       body: formData,
     })
@@ -77,8 +77,8 @@ const useApi = () => {
     setLoading(false)
     setData(datos.data)
 
-    if (datos.detail.status !== 200) {
-      setError(datos.detail.message)
+    if (datos.status !== 200) {
+      setError(datos.message)
     }
 
     return datos
