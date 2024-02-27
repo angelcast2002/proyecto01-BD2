@@ -14,6 +14,7 @@ import Popup from "../../components/Popup/Popup"
 import useIsImage from "../../Hooks/useIsImage"
 import { formatDuration } from "date-fns"
 import SearchBar from "../../components/SearchBar/SearchBar"
+import LoadButton from "../../components/LoadButton/LoadButton"
 
 const ChatPage = () => {
   const { user } = useStoreon("user")
@@ -161,7 +162,9 @@ const ChatPage = () => {
                     onClick={() =>
                       handleChat(chat.user_id, chat.postulation_id)
                     }
+                    
                   />
+
                 )
               )
             ) : (
@@ -169,6 +172,11 @@ const ChatPage = () => {
                 No tienes conversaciones
               </div>
             )}
+
+          <LoadButton onClick={obtainLastChats} text="Cargar más" />
+
+            
+
           </div>
           <div className={style.searchBarContainer}>
             <SearchBar search={handleSearch} onChange={handleValue}/>

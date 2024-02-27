@@ -61,9 +61,6 @@ const useApi = () => {
     return datos
   }
 
-
-
-
   const updateProfilePicture = async (file) => {
     const formData = new FormData()
     formData.append("file", file)
