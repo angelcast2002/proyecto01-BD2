@@ -12,7 +12,7 @@ from datetime import datetime
 from bson import ObjectId
 from bcrypt import hashpw, checkpw, gensalt
 from fastapi.middleware.cors import CORSMiddleware
-import base64
+from typing import Optional
 
 app = FastAPI()
 
@@ -75,22 +75,17 @@ class UserUpdate(BaseModel):
 
 # Ruta para actualizar la información de un usuario
 @app.put("/users")
-def update_user(user: UserUpdate = Depends(), profile_pic: UploadFile = File(...)):
+def update_user(user: UserUpdate = Depends()):
     client = mm.connect()
     db = client['ProyectoDB2']
     users_collection = db.usuarios
-    fs = GridFS(db)
     # Verificar si el usuario ya existe
     if not users_collection.find_one({"_id": user.id}):
         raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
-    # Guardar la imagen en GridFS
-    profile_pic_id = fs.put(profile_pic.file, filename=profile_pic.filename)
-
     # Insertar el nuevo usuario en la base de datos
     user_data = user.dict()
     user_data["birthdate"] = datetime.strptime(user_data["birthdate"], "%Y-%m-%d")
-    user_data['profilepic'] = profile_pic_id
 
     inserted_user = users_collection.update_one({"_id": user.id}, {"$set": user_data})
     mm.disconnect(client)
@@ -98,6 +93,27 @@ def update_user(user: UserUpdate = Depends(), profile_pic: UploadFile = File(...
     # Return status code 200 and message: "User created"
     return {"status": 200, "message": "User updated"}
 
+# Ruta para actualizar la foto de perfil de un usuario
+@app.put("/users/profilepic")
+def update_profilepic(user_id: str, profile_pic: UploadFile = File(...)):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+    fs = GridFS(db)
+
+    # Verificar si el usuario ya existe
+    if not users_collection.find_one({"_id": user_id}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
+
+    # Guardar la imagen en GridFS
+    profile_pic_id = fs.put(profile_pic.file, filename=profile_pic.filename)
+
+    # Actualizar la imagen de perfil del usuario
+    users_collection.update_one({"_id": user_id}, {"$set": {"profilepic": profile_pic_id}})
+    mm.disconnect(client)
+
+    # Return status code 200 and message: "Profile picture updated"
+    return {"status": 200, "message": "Profile picture updated"}
 
 class UserDelete(BaseModel):
     id: str
@@ -165,10 +181,9 @@ def get_user_info(user: UserDelete):
     client = mm.connect()
     db = client['ProyectoDB2']
     users_collection = db.usuarios
-    fs = GridFS(db)
 
     """ retornar tambien status code 200 y message: "User retrieved"""
-    user_document = users_collection.find_one({"_id": user.id}, {"_id": 0, "password": 0})
+    user_document = users_collection.find_one({"_id": user.id}, {"_id": 0, "password": 0, "profilepic": 0})
     if user_document is None:
         raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
 
@@ -176,11 +191,8 @@ def get_user_info(user: UserDelete):
         {"$match": {"_id": user.id}},
         {"$project": {"birthdate": {"$dateToString": {"format": "%Y-%m-%d", "date": "$birthdate"}}}}
     ]).next()["birthdate"]
-    # Recuperar la imagen de perfil del usuario
-    profile_pic = fs.get(user_document['profilepic']).read()
 
-    user_document['profilepic'] = base64.b64encode(profile_pic).decode('utf-8')
-
+    del user_document['id']
 
     mm.disconnect(client)
     return {"status": 200, "message": "User retrieved", "user_info": user_document}
