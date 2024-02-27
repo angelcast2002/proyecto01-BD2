@@ -35,6 +35,8 @@ const useApi = () => {
     return datos
   }
 
+
+  // ESTO LO HIZO ALE @azu21242
   const retrieveConversationsLimit = async (id_user, limit) => {
     setLoading(true)
     // /conversations/retrieve/limit/
@@ -138,6 +140,7 @@ const useApi = () => {
     updateProfilePicture,
     createUser,
     editUser,
+    retrieveConversationsLimit,
   }
 }
 
