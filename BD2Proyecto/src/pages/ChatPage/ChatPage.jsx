@@ -147,12 +147,16 @@ const ChatPage = () => {
       setTypePopUp(1)
     }
     */
-    if (response.status === 400) {
-      setError("La conversación ya existe")
+    if (response.status === 200) {
+      setError(response.message)
+      setWarning(true)
+      setTypePopUp(3)
+    } else if (response.detail.status === 400) {
+      setError(response.detail.message)
       setWarning(true)
       setTypePopUp(1)
-    } else if (response.status !== 200) {
-      setError("No se pudo crear la conversación")
+    } else {
+      setError(response.detail.message)
       setWarning(true)
       setTypePopUp(1)
     }
