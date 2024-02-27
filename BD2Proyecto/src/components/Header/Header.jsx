@@ -11,7 +11,7 @@ export const Header = () => {
   return (
     <div className={style.mainContainer}>
       <div className={style.actions}>
-        <a href="/editprofileestudiante">Perfil</a>
+        <a href="/editprofile">Perfil</a>
         <a href="/chat">Chat</a>
       </div>
       <div className={style.buttonLogoutMobile} onClick={handleClick}>

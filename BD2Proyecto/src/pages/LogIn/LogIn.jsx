@@ -37,12 +37,11 @@ const LogIn = () => {
       id: email,
       password: passWord,
     })
+    const data = response
 
-    console.log(response)
-
-    if (response.status === 200) {
+    if (data.status === 200) {
       dispatch("user/config", email)
-      navigate("/home")
+      navigate("/chat")
     } else {
       setError("Correo o contraseña incorrectos")
       setTypeError(2)
