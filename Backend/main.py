@@ -421,15 +421,15 @@ async def retrieve_conversations(request: RetrieveConversationsRequestSpecific):
             retrieved_conversations.append({
                 "id_conversacion": str(conversation["_id"]),
                 "nombre_persona": other_person_name,
-                "fecha_ultimo_mensaje": None,
-                "contenido_ultimo_mensaje": None,
+                "fecha_ultimo_mensaje": "",
+                "contenido_ultimo_mensaje": "",
                 "cantidad_mensajes": 0
             })
 
     length = len(retrieved_conversations)
 
     mm.disconnect(client)
-    return {"status": 200, "message": "Conversations retrieved", "num_messages": length, "conversations": retrieved_conversations}
+    return {"status": 200, "message": "Conversations retrieved", "num_conversations": length, "conversations": retrieved_conversations}
 
 
 
