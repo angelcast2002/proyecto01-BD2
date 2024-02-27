@@ -36,7 +36,7 @@ const ChatPage = () => {
   const [cambioChats, setCambioChats] = useState([])
   const [apiResponse, setApiResponse] = useState([])
   const [apiMessagesData, setApiMessagesData] = useState([])
-  const [idUsuario2, setIdUsuario2] = useState('');
+  const [idUsuario2, setIdUsuario2] = useState("")
 
   const obtainFiveMoreConversations = async () => {
     const response = await apiFiveLastConversations.retrieveConversationsLimit(
@@ -61,9 +61,13 @@ const ChatPage = () => {
 
   const obtainMessages = async () => {
     if (currentChat !== "") {
-      const response = await apiMessages.handleRequest("POST", "/messages/retrieve", {
-        conversation_id: idCurrentChat,
-      })
+      const response = await apiMessages.handleRequest(
+        "POST",
+        "/messages/retrieve",
+        {
+          conversation_id: idCurrentChat,
+        }
+      )
       if (response.status === 200) {
         setApiMessagesData(response.messages)
       }
@@ -126,10 +130,14 @@ const ChatPage = () => {
   }
 
   const handleSearch = async () => {
-    const response = await apiCreateConversations.handleRequest("POST", "/conversations/", {
-      id_usuario1: user, // this should be the user id of the current user (logged in)
-      id_usuario2: idUsuario2,
-    })
+    const response = await apiCreateConversations.handleRequest(
+      "POST",
+      "/conversations/",
+      {
+        id_usuario1: user, // this should be the user id of the current user (logged in)
+        id_usuario2: idUsuario2,
+      }
+    )
     console.log(response)
     /*
     if (response.status !== 200){
@@ -151,9 +159,7 @@ const ChatPage = () => {
       setWarning(true)
       setTypePopUp(1)
     }
-
-
-  };
+  }
 
   const handleValue = (e) => {
     setIdUsuario2(e.target.value)
@@ -174,26 +180,27 @@ const ChatPage = () => {
       <div className={style.generalChatContainer}>
         <div className={style.leftContainer}>
           <div
-            className={`${style.chatsContainer} ${showChats ? style.showChat : style.hideChat
-              }`}
+            className={`${style.chatsContainer} ${
+              showChats ? style.showChat : style.hideChat
+            }`}
           >
             {apiResponse && apiResponse.length > 0 ? (
-              apiResponse.map((chat) =>
-                chat.fecha_ultimo_mensaje === 0 ? null : (
-                  <Chat
-                    pfp="/images/pfp.svg"
-                    name={chat.nombre_persona}
-                    lastChat={
-                      chat.last_message
-                    }
-                    key={chat.id_conversacion.toString()}
-                    id_postulacion={chat.id_conversacion.toString()}
-                    onClick={() =>
-                      handleChat(chat.nombre_persona, chat.id_conversacion)
-                    }
-                  />
-                )
-              )
+              apiResponse.map((chat) => (
+                <Chat
+                  pfp="/images/pfp.svg"
+                  name={chat.nombre_persona}
+                  lastChat={
+                    chat.contenido_ultimo_mensaje === ""
+                      ? `Inicia una conversación con ${chat.nombre_persona}`
+                      : chat.contenido_ultimo_mensaje
+                  }
+                  key={chat.id_conversacion.toString()}
+                  id_postulacion={chat.id_conversacion.toString()}
+                  onClick={() =>
+                    handleChat(chat.nombre_persona, chat.id_conversacion)
+                  }
+                />
+              ))
             ) : (
               <div className={style.noUsersMessage}>
                 No tienes conversaciones
@@ -210,8 +217,9 @@ const ChatPage = () => {
           </div>
         </div>
         <div
-          className={`${style.currentChatContainer} ${showChats ? style.hide : style.show
-            }`}
+          className={`${style.currentChatContainer} ${
+            showChats ? style.hide : style.show
+          }`}
           ref={chatContainerRef}
         >
           {apiMessagesData && apiMessagesData.length > 0 ? (

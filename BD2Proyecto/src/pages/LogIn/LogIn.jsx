@@ -88,7 +88,7 @@ const LogIn = () => {
           <Button text="Iniciar sesión" size={"75%"} onClick={handleLogIn}/>
         </div>
         <a href="/signup">
-          Eres nuevo? <span> SingUp </span>
+          Eres nuevo? <span> SignUp </span>
         </a>
       </div>
     </div>
