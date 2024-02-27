@@ -12,18 +12,21 @@ import { navigate } from "../../store"
 import useApi from "../../Hooks/useApi"
 import Popup from "../../components/Popup/Popup"
 import useIsImage from "../../Hooks/useIsImage"
-import { formatDuration } from "date-fns"
+import { formatDuration, set } from "date-fns"
 import SearchBar from "../../components/SearchBar/SearchBar"
+import LoadButton from "../../components/LoadButton/LoadButton"
 
 const ChatPage = () => {
   const { user } = useStoreon("user")
   const apiLastChats = useApi()
+  const apiFiveLastConversations = useApi()
   const apiMessages = useApi()
   const apiSendMessage = useApi()
   const isImage = useIsImage()
   console.log("-->",user)
 
   const [currentChat, setCurrentChat] = useState("")
+  const [fiveMoreConversations, setfiveMoreConversations] = useState(5) // despues cambiar esto. 
   const [textMessage, setTextMessage] = useState("")
   const [idCurrentChat, setIdCurrentChat] = useState()
   const [warning, setWarning] = useState(false)
@@ -32,6 +35,20 @@ const ChatPage = () => {
   const chatContainerRef = useRef(null)
   const [cambioChats, setCambioChats] = useState([])
 
+  const obtainFiveMoreConversations = async () => {
+    const response = await apiFiveLastConversations.retrieveConversationsLimit(user, fiveMoreConversations);
+
+    if (response.status === 200) {
+      setfiveMoreConversations(fiveMoreConversations + 5)
+    } else {
+      setError("No se pudieron obtener más conversaciones")
+      setWarning(true)
+      setTypePopUp(1)
+      
+    }
+  }
+
+  
   const obtainLastChats = () => {
     apiLastChats.handleRequest("POST", "/messages/getLast", {
       id_usuario: user.id_user,
@@ -161,7 +178,9 @@ const ChatPage = () => {
                     onClick={() =>
                       handleChat(chat.user_id, chat.postulation_id)
                     }
+                    
                   />
+
                 )
               )
             ) : (
@@ -169,6 +188,11 @@ const ChatPage = () => {
                 No tienes conversaciones
               </div>
             )}
+
+          <LoadButton onClick={obtainFiveMoreConversations} text="Cargar más" />
+
+            
+
           </div>
           <div className={style.searchBarContainer}>
             <SearchBar search={handleSearch} onChange={handleValue}/>

@@ -1,0 +1,99 @@
+@app.delete("/users")
+def delete_user(user_id: str):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    users_collection = db.usuarios
+    conversations_collection = db.conversacion
+    fs = GridFS(db)
+
+    # Verificar si el usuario ya existe
+    if not users_collection.find_one({"_id": user_id}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario ya existe"})
+
+    # Borrar la imagen de perfil del usuario
+    user_document = users_collection.find_one({"_id": user_id})
+    fs.delete(user_document['profilepic'])
+
+    # Borrar el usuario de la base de datos
+    users_collection.delete_one({"_id": user_id})
+
+    # Verificar si todas las personas en una conversación han sido eliminadas
+    conversations = conversations_collection.find({"personas": user_id})
+    for conversation in conversations:
+        if not users_collection.find_one({"_id": {"$in": conversation["personas"]}}):
+            # Si todas las personas en la conversación han sido eliminadas, eliminar la conversación
+            conversations_collection.delete_one({"_id": conversation["_id"]})
+
+    mm.disconnect(client)
+
+    # Return status code 200 and message: "User deleted"
+    return {"status": 200, "message": "User deleted"}
+
+# Ruta para crear una conversación
+@app.post("/conversations/")
+async def create_conversation(members: members_conversation):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    conversations_collection = db.conversacion
+
+    # verifica si los usuarios existen
+    users_collection = db.usuarios
+    if not users_collection.find_one({"_id": members.id_usuario1}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario 1 no existe"})
+    if not users_collection.find_one({"_id": members.id_usuario2}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario 2 no existe"})
+    
+
+    # Verificar si la conversación ya existe
+    if conversations_collection.find_one({"personas": {"$all": [members.id_usuario1, members.id_usuario2]}}):
+        raise HTTPException(status_code=400, detail={"status": 400, "message": "La conversacion ya existe"})
+
+    # Crear la conversación
+    conversation_data = {
+        "arr_mensajes": [],
+        "personas": [members.id_usuario1, members.id_usuario2]
+    }
+    inserted_conversation = conversations_collection.insert_one(conversation_data)
+    mm.disconnect(client)
+
+    # Return status code 200 and message: "Conversation created", devolver el id de la conversación
+    return {"status": 200, "message": "Conversation created", "id_conversacion": str(inserted_conversation.inserted_id)}
+
+# Ruta para añadir un mensaje a una conversación
+@app.post("/messages/")
+async def add_message(message: message):
+    client = mm.connect()
+    db = client['ProyectoDB2']
+    conversations_collection = db.conversacion
+    fs = GridFS(db)
+    # Verificar si el usuario existe
+    users_collection = db.usuarios
+    if not users_collection.find_one({"_id": message.emisor}):
+        raise HTTPException(status_code=404, detail={"status": 404, "message": "El usuario no existe"})
+
+    # Verificar si la conversación existe
+    if not conversations_collection.find_one({"_id": ObjectId(message.id_conversacion)}):
+        raise HTTPException(status_code=400, detail={"status": 400, "message": "La conversacion no existe"})
+
+    # Guardar el mensaje en GridFS si es un archivo
+    if message.es_archivo:
+        mensaje_id = fs.put(message.mensaje.encode('utf-8'), filename=f"msg_{datetime.now().timestamp()}")
+        mensaje = str(mensaje_id)
+    else:
+        mensaje = message.mensaje
+
+    # Crear el mensaje
+    mensaje_doc = {
+        "emisor": message.emisor,
+        "mensaje": mensaje,
+        "es_archivo": message.es_archivo,
+        "fechahora": datetime.now()
+    }
+
+    # Insertar el mensaje en la conversación
+    conversations_collection.update_one({"_id": ObjectId(message.id_conversacion)},
+                                        {"$push": {"arr_mensajes": mensaje_doc}})
+    mm.disconnect(client)
+
+    # Return status code 200 and message: "Message added"
+    return {"status": 200, "message": "Message added", "id_conversacion": message.id_conversacion}
