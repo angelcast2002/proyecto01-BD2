@@ -18,12 +18,13 @@ import LoadButton from "../../components/LoadButton/LoadButton"
 
 const ChatPage = () => {
   const { user } = useStoreon("user")
+  const apiCreateConversations = useApi()
   const apiLastChats = useApi()
   const apiFiveLastConversations = useApi()
   const apiMessages = useApi()
   const apiSendMessage = useApi()
   const isImage = useIsImage()
-  console.log("-->",user)
+  console.log("-->", user)
 
   const [currentChat, setCurrentChat] = useState("")
   const [fiveMoreConversations, setfiveMoreConversations] = useState(5) // despues cambiar esto. 
@@ -34,6 +35,7 @@ const ChatPage = () => {
   const [typePopUp, setTypePopUp] = useState(1)
   const chatContainerRef = useRef(null)
   const [cambioChats, setCambioChats] = useState([])
+  const [idUsuario2, setIdUsuario2] = useState('');
 
   const obtainFiveMoreConversations = async () => {
     const response = await apiFiveLastConversations.retrieveConversationsLimit(user, fiveMoreConversations);
@@ -44,11 +46,10 @@ const ChatPage = () => {
       setError("No se pudieron obtener más conversaciones")
       setWarning(true)
       setTypePopUp(1)
-      
+
     }
   }
 
-  
   const obtainLastChats = () => {
     apiLastChats.handleRequest("POST", "/messages/getLast", {
       id_usuario: user.id_user,
@@ -133,12 +134,34 @@ const ChatPage = () => {
     setShowChats(false)
   }
 
-  const handleSearch = (e) => {
-    console.log('e.target.value')
-  }
+  const handleSearch = async () => {
+    const response = await apiCreateConversations.handleRequest("POST", "/conversations/", {
+      id_usuario1: user, // this should be the user id of the current user (logged in)
+      id_usuario2: idUsuario2,
+    })
+    console.log(response)
+    /*
+    if (response.status !== 200){
+      setError("No se pudo crear la conversación")
+      setWarning(true)
+      setTypePopUp(1)
+    }
+    */
+    if (response.status === 400) {
+      setError("La conversación ya existe")
+      setWarning(true)
+      setTypePopUp(1)
+    } else if (response.status !== 200) {
+      setError("No se pudo crear la conversación")
+      setWarning(true)
+      setTypePopUp(1)
+    }
+
+
+  };
 
   const handleValue = (e) => {
-    console.log(e.target.value)
+    setIdUsuario2(e.target.value)
   }
 
   return (
@@ -156,9 +179,8 @@ const ChatPage = () => {
       <div className={style.generalChatContainer}>
         <div className={style.leftContainer}>
           <div
-            className={`${style.chatsContainer} ${
-              showChats ? style.showChat : style.hideChat
-            }`}
+            className={`${style.chatsContainer} ${showChats ? style.showChat : style.hideChat
+              }`}
           >
             {apiLastChats.data && apiLastChats.data.messages.length > 0 ? (
               apiLastChats.data.messages.map((chat) =>
@@ -178,7 +200,7 @@ const ChatPage = () => {
                     onClick={() =>
                       handleChat(chat.user_id, chat.postulation_id)
                     }
-                    
+
                   />
 
                 )
@@ -189,19 +211,18 @@ const ChatPage = () => {
               </div>
             )}
 
-          <LoadButton onClick={obtainFiveMoreConversations} text="Cargar más" />
+            <LoadButton onClick={obtainFiveMoreConversations} text="Cargar más" />
 
-            
+
 
           </div>
           <div className={style.searchBarContainer}>
-            <SearchBar search={handleSearch} onChange={handleValue}/>
+            <SearchBar search={handleSearch} onChange={handleValue} />
           </div>
         </div>
         <div
-          className={`${style.currentChatContainer} ${
-            showChats ? style.hide : style.show
-          }`}
+          className={`${style.currentChatContainer} ${showChats ? style.hide : style.show
+            }`}
           ref={chatContainerRef}
         >
           {apiMessages.data && apiMessages.data.messages.length > 0 ? (
