@@ -371,7 +371,7 @@ class RetrieveConversationsRequestSpecific(BaseModel):
     user_id: str
     limit: int
 
-# Ruta para retornar solo 15 conversaciones. 
+# Ruta para retornar n conversaciones. 
 @app.post("/conversations/retrieve/limit")
 
 async def retrieve_conversations(request: RetrieveConversationsRequestSpecific):
