@@ -23,10 +23,9 @@ const ChatPage = () => {
   const apiMessages = useApi()
   const apiSendMessage = useApi()
   const isImage = useIsImage()
-  console.log("-->",user)
 
   const [currentChat, setCurrentChat] = useState("")
-  const [fiveMoreConversations, setfiveMoreConversations] = useState(5) // despues cambiar esto. 
+  const [fiveMoreConversations, setfiveMoreConversations] = useState(5) // despues cambiar esto.
   const [textMessage, setTextMessage] = useState("")
   const [idCurrentChat, setIdCurrentChat] = useState()
   const [warning, setWarning] = useState(false)
@@ -34,35 +33,31 @@ const ChatPage = () => {
   const [typePopUp, setTypePopUp] = useState(1)
   const chatContainerRef = useRef(null)
   const [cambioChats, setCambioChats] = useState([])
+  const [apiResponse, setApiResponse] = useState([])
+  const [apiMessagesData, setApiMessagesData] = useState([])
 
   const obtainFiveMoreConversations = async () => {
-    const response = await apiFiveLastConversations.retrieveConversationsLimit(user, fiveMoreConversations);
-
+    const response = await apiFiveLastConversations.retrieveConversationsLimit(
+      user,
+      fiveMoreConversations
+    )
     if (response.status === 200) {
       setfiveMoreConversations(fiveMoreConversations + 5)
+      setApiResponse(response.conversations)
     } else {
       setError("No se pudieron obtener más conversaciones")
       setWarning(true)
       setTypePopUp(1)
-      
     }
-  }
-
-  
-  const obtainLastChats = () => {
-    apiLastChats.handleRequest("POST", "/messages/getLast", {
-      id_usuario: user.id_user,
-    })
   }
 
   const obtainMessages = async () => {
     if (currentChat !== "") {
-      await apiMessages.handleRequest("POST", "/messages/get", {
-        id_emisor: user.id_user,
-        id_receptor: currentChat,
+      const response = await apiMessages.handleRequest("POST", "/messages/retrieve", {
+        conversation_id: idCurrentChat,
       })
-      if (cambioChats !== apiMessages.data) {
-        setCambioChats(apiMessages.data)
+      if (response.status === 200) {
+        setApiMessagesData(response.messages)
       }
     }
   }
@@ -89,11 +84,11 @@ const ChatPage = () => {
   }, [cambioChats])
 
   const sendMessage = async () => {
-    await apiSendMessage.handleRequest("POST", "/messages/send", {
-      id_emisor: user.id_user,
-      id_receptor: currentChat,
+    await apiSendMessage.handleRequest("POST", "/messages/", {
+      id_conversacion: idCurrentChat,
+      emisor: user,
       mensaje: textMessage,
-      id_postulacion: idCurrentChat,
+      es_archivo: false,
     })
     scrollDown()
     obtainMessages()
@@ -106,18 +101,7 @@ const ChatPage = () => {
   const handleSendMessage = () => {
     sendMessage()
     setTextMessage("")
-    setUploadedImage("")
   }
-
-  //Intervals
-  // Actualizar lista de chats
-  useEffect(() => {
-    obtainLastChats()
-    const intervalListadeChats = setInterval(() => {
-      obtainLastChats()
-    }, 5000)
-    return () => clearInterval(intervalListadeChats)
-  }, [])
 
   // Estado para controlar la visibilidad del contenedor de chats
   const [showChats, setShowChats] = useState(false)
@@ -134,7 +118,7 @@ const ChatPage = () => {
   }
 
   const handleSearch = (e) => {
-    console.log('e.target.value')
+    console.log("e.target.value")
   }
 
   const handleValue = (e) => {
@@ -160,27 +144,21 @@ const ChatPage = () => {
               showChats ? style.showChat : style.hideChat
             }`}
           >
-            {apiLastChats.data && apiLastChats.data.messages.length > 0 ? (
-              apiLastChats.data.messages.map((chat) =>
-                chat.last_message.length === 0 ? null : (
+            {apiResponse && apiResponse.length > 0 ? (
+              apiResponse.map((chat) =>
+                chat.fecha_ultimo_mensaje === 0 ? null : (
                   <Chat
-                    pfp={
-                      chat.user_photo
-                        ? API_URL + "/api/uploads/" + chat.user_photo
-                        : "/images/pfp.svg"
-                    }
-                    name={chat.user_name}
+                    pfp="/images/pfp.svg"
+                    name={chat.nombre_persona}
                     lastChat={
-                      isImage(chat.last_message) ? "Foto" : chat.last_message
+                      chat.last_message
                     }
-                    key={chat.postulation_id}
-                    id_postulacion={chat.postulation_id.toString()}
+                    key={chat.id_conversacion.toString()}
+                    id_postulacion={chat.id_conversacion.toString()}
                     onClick={() =>
-                      handleChat(chat.user_id, chat.postulation_id)
+                      handleChat(chat.nombre_persona, chat.id_conversacion)
                     }
-                    
                   />
-
                 )
               )
             ) : (
@@ -189,13 +167,13 @@ const ChatPage = () => {
               </div>
             )}
 
-          <LoadButton onClick={obtainFiveMoreConversations} text="Cargar más" />
-
-            
-
+            <LoadButton
+              onClick={obtainFiveMoreConversations}
+              text="Cargar más"
+            />
           </div>
           <div className={style.searchBarContainer}>
-            <SearchBar search={handleSearch} onChange={handleValue}/>
+            <SearchBar search={handleSearch} onChange={handleValue} />
           </div>
         </div>
         <div
@@ -204,22 +182,20 @@ const ChatPage = () => {
           }`}
           ref={chatContainerRef}
         >
-          {apiMessages.data && apiMessages.data.messages.length > 0 ? (
-            apiMessages.data.messages.map((message, number) => {
-              const side = message.id_emisor === user.id_user ? "right" : "left"
+          {apiMessagesData && apiMessagesData.length > 0 ? (
+            apiMessagesData.map((message, number) => {
+              const side = message.id_emisor === user ? "right" : "left"
+              //const side = message.emisor === user ? "right" : "left"
               number += 1
-              const fileType = isImage(message.mensaje)
-              const pfpUrlEmisor = message.emisor_foto
-                ? API_URL + "/api/uploads/" + message.emisor_foto
-                : "/images/pfp.svg"
+              const pfpUrlEmisor = "/images/pfp.svg"
               return (
                 <Message
-                  key={[message.id, message.id_emisor, number]}
+                  key={[message.emisor, number]}
                   pfp={pfpUrlEmisor}
-                  name={message.emisor_nombre}
-                  time={message.tiempo}
-                  message={fileType ? "" : message.mensaje}
-                  file={fileType ? message.mensaje : ""}
+                  name={message.emisor}
+                  time={message.fechahora}
+                  message={message.mensaje}
+                  file={""}
                   side={side}
                 />
               )
