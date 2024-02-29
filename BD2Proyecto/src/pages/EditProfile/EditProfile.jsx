@@ -9,7 +9,7 @@ import Loader from "../../components/Loader/Loader"
 import useApi from "../../Hooks/useApi"
 import Popup from "../../components/Popup/Popup"
 import Header from "../../components/Header/Header"
-import Switch from "../../components/Switch/Switch"
+import API_URL from "../../api"
 
 const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -21,6 +21,7 @@ const EditProfile = () => {
   const api = useApi()
   const apiUser = useApi()
   const apiDelete = useApi()
+  const apiImage = useApi()
 
   const [nombres, setNombres] = useState("")
   const [apellidos, setApellidos] = useState("")
@@ -39,6 +40,20 @@ const EditProfile = () => {
       },
       "Accept"
     )
+    const path = "users/profilepic"
+    const apiResponse = await fetch(`${API_URL}/${path}`, {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+       "Content-Type": "application/json"
+      },
+      body: JSON.stringify({"id": "cas21700@uvg.edu.gt"})
+    })
+    const imageBlob = await apiResponse.blob()
+    console.log(imageBlob)
+    const url = URL.createObjectURL(imageBlob)
+    console.log(url)
+    setPfpPreview(url)
   }
 
   useEffect(() => {

@@ -10,7 +10,6 @@ const Home = () => {
   const logIn = () => {
     navigate("login")
   }
-
   const signUp = () => {
     navigate("signup")
   }

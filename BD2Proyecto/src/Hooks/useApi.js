@@ -91,7 +91,7 @@ const useApi = () => {
     const apiResponse = await fetch(`${API_URL}/users?${path}`, {
       method: "POST",
       headers: {
-        "accept": "application/json",
+        "accept": "application/json"
       },
       body: formData,
     })
@@ -128,6 +128,22 @@ const useApi = () => {
     return datos
   }
 
+  const obtainImage = async (path) => {
+    const apiResponse = await fetch(`${API_URL}/${path}`, {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+       "Content-Type": "application/json"
+      },
+      body: JSON.stringify({"id": "cas21700@uvg.edu.gt"})
+    })
+    const imageBlob = await apiResponse.blob()
+    console.log(imageBlob)
+    const url = URL.createObjectURL(imageBlob)
+    console.log(url)
+    return url
+  }
+
   return {
     error,
     user,
@@ -138,6 +154,7 @@ const useApi = () => {
     createUser,
     editUser,
     retrieveConversationsLimit,
+    obtainImage
   }
 }
 
