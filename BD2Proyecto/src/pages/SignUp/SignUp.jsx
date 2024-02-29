@@ -28,7 +28,7 @@ const SignUp = () => {
   const [nombres, setNombres] = useState("")
   const [apellidos, setApellidos] = useState("")
   const [fechaNacimiento, setFechaNacimiento] = useState("")
-  const [genre, setGenre] = useState("M")
+  const [genre, setGenre] = useState(false)
 
   const [warning, setWarning] = useState(false)
   const [error, setError] = useState("")
@@ -119,8 +119,9 @@ const SignUp = () => {
   }
 
   const handleGenre = (e) => {
-    setGenre(e.target.checked ? "M" : "F")
+    setGenre(e.target.checked)
   }
+  console.log(genre)
 
   return (
     <div className={style.signUpCointainer}>

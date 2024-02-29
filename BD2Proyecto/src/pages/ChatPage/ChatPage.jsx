@@ -53,12 +53,6 @@ const ChatPage = () => {
     }
   }
 
-  const obtainLastChats = () => {
-    apiLastChats.handleRequest("POST", "/messages/getLast", {
-      id_usuario: user.id_user,
-    })
-  }
-
   const obtainMessages = async () => {
     if (currentChat !== "") {
       const response = await apiMessages.handleRequest(
@@ -95,6 +89,10 @@ const ChatPage = () => {
     scrollDown()
   }, [cambioChats])
 
+  useEffect(() => {
+    obtainFiveMoreConversations()
+  }, [])
+
   const sendMessage = async () => {
     await apiSendMessage.handleRequest("POST", "/messages/", {
       id_conversacion: idCurrentChat,
@@ -125,6 +123,7 @@ const ChatPage = () => {
 
   const handleChat = (receptor, id) => {
     setCurrentChat(receptor)
+    setCambioChats(receptor)
     setIdCurrentChat(id)
     setShowChats(false)
   }
