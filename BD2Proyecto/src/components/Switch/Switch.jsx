@@ -6,7 +6,7 @@ const Switch = ({ onClick, value }) => {
     <div class="wrapper">
         <div class="card-switch">
             <label class="switch">
-               <input type="checkbox" class="toggle" onClick={onClick} />
+               <input type="checkbox" class="toggle" onClick={onClick} value={value} />
                <span class="slider"></span>
                <span class="card-side"></span>
             </label>
