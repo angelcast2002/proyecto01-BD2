@@ -1,0 +1,40 @@
+.mainContainer {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  width: 100%;
+  height: 100%;
+  background-image: url("/images/cool-background.svg");
+  background-size: cover;
+  background-position: left;
+  gap: 10px;
+}
+
+.buttonLogoutMobile {
+  width: calc(100% - 40px);
+  height: calc(10% - 10px);
+  padding: 5px 20px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  flex-direction: row;
+  gap: 30px;
+}
+
+.chartsContainer {
+  width: 100%;
+  height: 80%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.iFrameContainer {
+  width: 30%;
+  height: 50%;
+  max-width: 640px;
+  max-height: 480px;
+}

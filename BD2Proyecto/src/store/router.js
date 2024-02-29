@@ -7,6 +7,7 @@ export default createRouter([
   ["/signup", () => ({ page: "signup" })],
   ["/chat", () => ({ page: "chat" })],
   ["/editprofile", () => ({ page: "editprofile" })],
+  ["/charts", () => ({ page: "charts" })],
   
   /*
 	Ejemplo de rutas con promps y parametros
