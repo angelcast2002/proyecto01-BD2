@@ -128,19 +128,17 @@ const useApi = () => {
     return datos
   }
 
-  const obtainImage = async (path) => {
+  const obtainImage = async (path, body) => {
     const apiResponse = await fetch(`${API_URL}/${path}`, {
       method: "POST",
       headers: {
         "accept": "application/json",
        "Content-Type": "application/json"
       },
-      body: JSON.stringify({"id": "cas21700@uvg.edu.gt"})
+      body: JSON.stringify(body)
     })
     const imageBlob = await apiResponse.blob()
-    console.log(imageBlob)
     const url = URL.createObjectURL(imageBlob)
-    console.log(url)
     return url
   }
 

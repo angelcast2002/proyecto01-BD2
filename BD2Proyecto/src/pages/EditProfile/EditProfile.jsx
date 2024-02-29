@@ -40,25 +40,15 @@ const EditProfile = () => {
       },
       "Accept"
     )
-    const path = "users/profilepic"
-    const apiResponse = await fetch(`${API_URL}/${path}`, {
-      method: "POST",
-      headers: {
-        "accept": "application/json",
-       "Content-Type": "application/json"
-      },
-      body: JSON.stringify({"id": "cas21700@uvg.edu.gt"})
+    const url = await apiImage.obtainImage("users/profilepic", {
+      id: user,
     })
-    const imageBlob = await apiResponse.blob()
-    console.log(imageBlob)
-    const url = URL.createObjectURL(imageBlob)
-    console.log(url)
     setPfpPreview(url)
   }
 
   useEffect(() => {
     obtainData()
-  }, [])
+  }, [user])
 
   useEffect(() => {
     if (apiUser.data) {
