@@ -8,10 +8,6 @@ import uuid
 from bson.objectid import ObjectId
 from IPython.display import display
 
-# Conexión a MongoDB
-client = MongoClient("mongodb+srv://azu21242:TopoMorado2@aleazurdia.ueyomqq.mongodb.net/?retryWrites=true&w=majority&appName=aleazurdia")
-db = client.ProyectoDB2
-fs = gridfs.GridFS(db)
 
 # Función para añadir un usuario
 def anadir_usuario(correo, nombre, apellido, birthdate, password, profile_pic_path):
@@ -82,8 +78,28 @@ def recueprar_id_conversation(correo1, correo2):
     else:
         return None
 
+def update_gender(usuarios_col):
+    # Actualiza todos los documentos donde gender es "F" a True
+    usuarios_col.update_many({"gender": "F"}, {"$set": {"gender": True}})
+    # Actualiza todos los documentos donde gender es "M" a False
+    usuarios_col.update_many({"gender": "M"}, {"$set": {"gender": False}})
+    return usuarios_col.find()
+
+
 
 if __name__ == "__main__":
     print("Hola mundo")
+
+
+    try:
+        # Conexión a MongoDB
+        client = MongoClient("mongodb+srv://azu21242:TopoMorado2@aleazurdia.ueyomqq.mongodb.net/?retryWrites=true&w=majority&appName=aleazurdia")
+        db = client.ProyectoDB2
+        usuarios_col = db['usuarios']
+    except Exception as e:
+        print(f"Error al conectarse a la base de datos: {e}")
+
+    gender_updated = update_gender(usuarios_col)
+    print(gender_updated)
 
 
