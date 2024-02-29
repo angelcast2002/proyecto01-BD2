@@ -28,6 +28,7 @@ const Home = () => {
         <div className={style.buttons}>
             <Button text="Iniciar sesión" size="250px" onClick={logIn}/>
             <Button text="Crear cuenta" size="250px" onClick={signUp}/>
+            <Button text="Nuestros datos" size="250px" onClick={() => navigate("charts")}/>
         </div>
       </div>
       <div className={style.rightContainer}>

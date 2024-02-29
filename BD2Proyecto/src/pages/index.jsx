@@ -6,6 +6,7 @@ import LogIn from "./LogIn/LogIn"
 import SignUp from "./SignUp/SignUp"
 import Chat from "./ChatPage/ChatPage"
 import EditProfile from "./EditProfile/EditProfile"
+import ChartsPage from "./Charts/ChartsPage"
 
 const Page = () => {
     const { [routerKey]: route } = useStoreon(routerKey)
@@ -26,6 +27,9 @@ const Page = () => {
         break
       case "editprofile":
         Component = <EditProfile />
+        break
+      case "charts":
+        Component = <ChartsPage />
         break
       default:
         Component = <h1>404 Error</h1>
