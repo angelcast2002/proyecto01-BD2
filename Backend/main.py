@@ -59,7 +59,12 @@ def create_user(user: User = Depends(), profile_pic: UploadFile = File(...)):
     user_data['password'] = hashed_password.decode('utf-8')
     user_data['profilepic'] = profile_pic_id
     user_data['_id'] = user_data.pop('id')
-    user_data['gender'] = user.gender
+    #user_data['gender'] = user.gender
+    #transformar el genero de string a boolean
+    if user == "true":
+        user_data['gender'] = True
+    else:
+        user_data['gender'] = False
 
     inserted_user = users_collection.insert_one(user_data)
     mm.disconnect(client)
