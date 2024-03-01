@@ -33,8 +33,12 @@
 }
 
 .iFrameContainer {
-  width: 30%;
+  width: calc(100% / 3.3);
   height: 50%;
   max-width: 640px;
   max-height: 480px;
+  min-width: 320px;
+  min-height: 240px;
+  display: flex;
+  flex-wrap: wrap;
 }
