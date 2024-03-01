@@ -23,6 +23,7 @@ const ChatPage = () => {
   const apiFiveLastConversations = useApi()
   const apiMessages = useApi()
   const apiSendMessage = useApi()
+  const apiImageMine = useApi()
   const isImage = useIsImage()
 
   const [currentChat, setCurrentChat] = useState("")
@@ -37,6 +38,7 @@ const ChatPage = () => {
   const [apiResponse, setApiResponse] = useState([])
   const [apiMessagesData, setApiMessagesData] = useState([])
   const [idUsuario2, setIdUsuario2] = useState("")
+  const [pfpMine, setPfpMine] = useState("/images/pfp.svg")
 
   const obtainFiveMoreConversations = async () => {
     const response = await apiFiveLastConversations.retrieveConversationsLimit(
@@ -85,12 +87,23 @@ const ChatPage = () => {
     })
   }
 
+  const obtainImageFunc = async () => {
+    const img = await apiImageMine.obtainImage(
+      "users/profilepic",
+      {
+        id: user
+      }
+    )
+    setPfpMine(img)
+  }
+
   useEffect(() => {
     scrollDown()
   }, [cambioChats])
 
   useEffect(() => {
     obtainFiveMoreConversations()
+    obtainImageFunc()
   }, [])
 
   const sendMessage = async () => {
@@ -226,7 +239,7 @@ const ChatPage = () => {
               const side = message.id_emisor === user ? "right" : "left"
               //const side = message.emisor === user ? "right" : "left"
               number += 1
-              const pfpUrlEmisor = "/images/pfp.svg"
+              const pfpUrlEmisor = side === "right" ? pfpMine : "/images/pfp.svg"
               return (
                 <Message
                   key={[message.emisor, number]}

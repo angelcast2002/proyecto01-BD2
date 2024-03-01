@@ -9,7 +9,7 @@ import Loader from "../../components/Loader/Loader"
 import useApi from "../../Hooks/useApi"
 import Popup from "../../components/Popup/Popup"
 import Header from "../../components/Header/Header"
-import Switch from "../../components/Switch/Switch"
+import API_URL from "../../api"
 
 const EditProfile = () => {
   const [isLoading, setIsLoading] = useState(false)
@@ -21,6 +21,7 @@ const EditProfile = () => {
   const api = useApi()
   const apiUser = useApi()
   const apiDelete = useApi()
+  const apiImage = useApi()
 
   const [nombres, setNombres] = useState("")
   const [apellidos, setApellidos] = useState("")
@@ -39,11 +40,15 @@ const EditProfile = () => {
       },
       "Accept"
     )
+    const url = await apiImage.obtainImage("users/profilepic", {
+      id: user,
+    })
+    setPfpPreview(url)
   }
 
   useEffect(() => {
     obtainData()
-  }, [])
+  }, [user])
 
   useEffect(() => {
     if (apiUser.data) {

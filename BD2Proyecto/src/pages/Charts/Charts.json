@@ -1,11 +1,20 @@
 [
-	{
-		"src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65dd6729-432f-4c9e-8704-0d9cf0baa914&maxDataAge=3600&theme=light&autoRefresh=true"
-	},
-	{
-		"src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65e003de-cfab-41a6-8133-345a785a6b92&maxDataAge=3600&theme=light&autoRefresh=true"
-	},
-	{
-		"src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65e001c7-f477-4109-81ec-64315e5ba586&maxDataAge=3600&theme=light&autoRefresh=true"
-	}
+  {
+    "src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65dd6729-432f-4c9e-8704-0d9cf0baa914&maxDataAge=3600&theme=light&autoRefresh=true"
+  },
+  {
+    "src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65e003de-cfab-41a6-8133-345a785a6b92&maxDataAge=3600&theme=light&autoRefresh=true"
+  },
+  {
+    "src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65e001c7-f477-4109-81ec-64315e5ba586&maxDataAge=3600&theme=light&autoRefresh=true"
+  },
+  {
+    "src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65e10177-dadd-4184-8965-226196c61931&maxDataAge=3600&theme=light&autoRefresh=true"
+  },
+  {
+    "src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65dd6872-e95f-49ef-8b48-b0a2566b1394&maxDataAge=3600&theme=light&autoRefresh=true"
+  },
+  {
+    "src": "https://charts.mongodb.com/charts-project-0-qmwxk/embed/charts?id=65dfdce4-3f32-4ab1-8e96-c4fbe7e19d65&maxDataAge=3600&theme=light&autoRefresh=true"
+  }
 ]
