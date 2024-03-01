@@ -103,7 +103,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     obtainFiveMoreConversations()
-
+    obtainImageFunc()
   }, [])
 
   const sendMessage = async () => {
