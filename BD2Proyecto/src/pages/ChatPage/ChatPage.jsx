@@ -88,12 +88,9 @@ const ChatPage = () => {
   }
 
   const obtainImageFunc = async () => {
-    const img = await apiImageMine.obtainImage(
-      "users/profilepic",
-      {
-        id: user
-      }
-    )
+    const img = await apiImageMine.obtainImage("users/profilepic", {
+      id: user,
+    })
     setPfpMine(img)
   }
 
@@ -239,7 +236,8 @@ const ChatPage = () => {
               const side = message.id_emisor === user ? "right" : "left"
               //const side = message.emisor === user ? "right" : "left"
               number += 1
-              const pfpUrlEmisor = side === "right" ? pfpMine : "/images/pfp.svg"
+              const pfpUrlEmisor =
+                side === "right" ? pfpMine : "/images/pfp.svg"
               return (
                 <Message
                   key={[message.emisor, number]}
