@@ -146,13 +146,8 @@ def delete_user(user : UserDelete):
     # Borrar el usuario de la base de datos
     users_collection.delete_one({"_id": user.id})
 
-    # Verificar si todas las personas en una conversación han sido eliminadas
-    conversations = conversations_collection.find({"personas": user.id})
-    for conversation in conversations:
-        if not users_collection.find_one({"_id": {"$in": conversation["personas"]}}):
-            # Si todas las personas en la conversación han sido eliminadas, eliminar la conversación
-            conversations_collection.delete_one({"_id": conversation["_id"]})
-
+    # Elimina las conversaciones en las que el usuario participa
+    conversations_collection.delete_many({"personas": user.id})
     mm.disconnect(client)
 
     # Return status code 200 and message: "User deleted"

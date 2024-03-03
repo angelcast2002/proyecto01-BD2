@@ -8,10 +8,6 @@ import uuid
 from bson.objectid import ObjectId
 from IPython.display import display
 
-# Conexión a MongoDB
-client = MongoClient("mongodb+srv://azu21242:TopoMorado2@aleazurdia.ueyomqq.mongodb.net/?retryWrites=true&w=majority&appName=aleazurdia")
-db = client.ProyectoDB2
-fs = gridfs.GridFS(db)
 
 # Función para añadir un usuario
 def anadir_usuario(correo, nombre, apellido, birthdate, password, profile_pic_path):
@@ -82,20 +78,28 @@ def recueprar_id_conversation(correo1, correo2):
     else:
         return None
 
+def update_gender(usuarios_col):
+    # Actualiza todos los documentos donde gender es "F" a True
+    usuarios_col.update_many({"gender": "F"}, {"$set": {"gender": True}})
+    # Actualiza todos los documentos donde gender es "M" a False
+    usuarios_col.update_many({"gender": "M"}, {"$set": {"gender": False}})
+    return usuarios_col.find()
+
+
 
 if __name__ == "__main__":
-    # Prueba de añadir usuario
-    anadir_usuario("prueba", "new prueba", "new prueba", "1999-11-11", "password", "backend/foto.png")
-    anadir_usuario("prueba2", "new prueba", "new prueba", "1999-11-11", "password", "backend/foto.png")
-    #recuperar_usuario_y_foto("prueba1@gmail.com")
+    print("Hola mundo")
 
-    # Prueba de crear conversación
-    #crear_conversacion("prueba1@gmail.com", "prueba2@gmai.com")
 
-    #id_recuperado = recueprar_id_conversation("prueba1@gmail.com", "prueba2@gmai.com")
+    try:
+        # Conexión a MongoDB
+        client = MongoClient("mongodb+srv://azu21242:TopoMorado2@aleazurdia.ueyomqq.mongodb.net/?retryWrites=true&w=majority&appName=aleazurdia")
+        db = client.ProyectoDB2
+        usuarios_col = db['usuarios']
+    except Exception as e:
+        print(f"Error al conectarse a la base de datos: {e}")
 
-    # Prueba de añadir mensaje
-    #anadir_mensaje(id_recuperado, "prueba1@gmail.com", "prueba2@gmail.com", "Hola, ¿cómo estás?")
-    #anadir_mensaje(id_recuperado, "prueba2@gmail.com", "prueba1@gmail.com", "Bien, y tu?, queloque")
-    #anadir_mensaje(id_recuperado, "prueba1@gmail.com", "prueba2@gmail.com", "¿Como que queloque loco?")
+    gender_updated = update_gender(usuarios_col)
+    print(gender_updated)
+
 
