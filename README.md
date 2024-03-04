@@ -7,6 +7,9 @@
 
 [ChaChatGT Project](http://chachatgt.netlify.app)
 
+
+Video:
+
 [![Video](https://img.youtube.com/vi/MCCjDr3qZoo/0.jpg)](https://youtu.be/MCCjDr3qZoo)
 
 
