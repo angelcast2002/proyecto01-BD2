@@ -7,8 +7,6 @@
 
 [ChaChatGT Project](http://chachatgt.netlify.app)
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/MCCjDr3qZoo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-
 [![Video](https://img.youtube.com/vi/MCCjDr3qZoo/0.jpg)](https://youtu.be/MCCjDr3qZoo)
 
 
